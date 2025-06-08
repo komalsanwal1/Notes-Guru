@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type ChangeEvent, useEffect } from "react";
+import { useState, type ChangeEvent, useEffect, useRef } from "react";
 import Image from "next/image";
 import PageContainer from "@/components/shared/page-container";
 import { Button } from "@/components/ui/button";
@@ -10,24 +10,34 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Terminal, UploadCloud, ScanText, Sparkles } from "lucide-react";
+import { Loader2, Terminal, UploadCloud, ScanText, Sparkles, FileType2, Brain } from "lucide-react";
 import { extractTextFromImage, type ExtractTextFromImageInput, type ExtractTextFromImageOutput } from "@/ai/flows/extract-text-from-image";
 import { processText, type ProcessTextInput, type ProcessTextOutput } from "@/ai/flows/process-text-flow";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export default function OcrPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [extractedText, setExtractedText] = useState(""); // Stores the original OCR output
-  const [editableText, setEditableText] = useState(""); // Text in the textarea, can be refined
+  const [extractedText, setExtractedText] = useState(""); 
+  const [editableText, setEditableText] = useState(""); 
+  
   const [isLoadingOcr, setIsLoadingOcr] = useState(false);
-  const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [isLoadingAiProcessing, setIsLoadingAiProcessing] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  
+  const [generatedNotesHeading, setGeneratedNotesHeading] = useState("");
+  const [generatedNotesBody, setGeneratedNotesBody] = useState("");
+  
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // When extractedText changes (new OCR), update editableText
     setEditableText(extractedText);
+    // Clear previous advanced notes when new OCR text is extracted
+    setGeneratedNotesHeading("");
+    setGeneratedNotesBody("");
   }, [extractedText]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -40,8 +50,10 @@ export default function OcrPage() {
       };
       reader.readAsDataURL(file);
       setError(null);
-      setExtractedText(""); // Clear previous OCR text
-      setEditableText(""); // Clear previous editable text
+      setExtractedText(""); 
+      setEditableText(""); 
+      setGeneratedNotesHeading("");
+      setGeneratedNotesBody("");
     }
   };
 
@@ -54,11 +66,13 @@ export default function OcrPage() {
     setError(null);
     setExtractedText("");
     setEditableText("");
+    setGeneratedNotesHeading("");
+    setGeneratedNotesBody("");
 
     try {
       const input: ExtractTextFromImageInput = { photoDataUri: previewUrl };
       const result: ExtractTextFromImageOutput = await extractTextFromImage(input);
-      setExtractedText(result.extractedText); // This will trigger the useEffect to setEditableText
+      setExtractedText(result.extractedText); 
       toast({ title: "Success", description: "Text extracted from image." });
     } catch (err) {
       console.error("OCR error:", err);
@@ -70,54 +84,131 @@ export default function OcrPage() {
     }
   };
   
-  const handleAiAction = async (action: "clean" | "revise" | "shorten") => {
+  const handleGenerateAdvancedNotes = async () => {
     if (!editableText.trim()) {
-      setError("No text to process.");
-      toast({ variant: "destructive", title: "Input Missing", description: "No text to process for AI action." });
+      setError("No text to process. Please extract text from an image first or type some text.");
+      toast({ variant: "destructive", title: "Input Missing", description: "No text available to generate notes from." });
       return;
     }
-    setIsLoadingAi(true);
+    setIsLoadingAiProcessing(true);
     setError(null);
-
-    let refinementInstruction = "";
-    if (action === "clean") refinementInstruction = "Clean up any OCR errors and improve readability of the text, maintaining original meaning and style.";
-    if (action === "revise") refinementInstruction = "Revise the text for clarity, conciseness, and improved grammar, while preserving the core message.";
-    if (action === "shorten") refinementInstruction = "Shorten the text significantly, creating a concise summary. Output as plain text, not bullet points, suitable for direct editing.";
+    setGeneratedNotesHeading("");
+    setGeneratedNotesBody("");
     
     try {
       const input: ProcessTextInput = { 
-        text: extractedText || editableText, // Provide original OCR text if available, else current editable as context
-        mode: "simplify", // Base mode for processText context
-        format: "story_format", // We want plain text back for the textarea
-        previousProcessedText: editableText, // The current text in the textarea to be refined
-        refinementInstruction: refinementInstruction,
-        // previousHeading is optional and not used here
+        text: editableText,
+        mode: "simplify", 
+        format: "bullet_points",
+        // No refinementInstruction or previousProcessedText needed for this initial generation from OCR.
+        // The prompt for simplify + bullet_points is already geared towards detailed output.
       };
       const result: ProcessTextOutput = await processText(input);
-      // The OCR page uses the processedText directly. The generatedHeading from processText is not displayed here.
-      setEditableText(result.processedText); 
-      toast({ title: "Success", description: `Text ${action}ed successfully.` });
+      setGeneratedNotesHeading(result.generatedHeading);
+      setGeneratedNotesBody(result.processedText);
+      toast({ title: "Success", description: "Advanced study notes generated." });
     } catch (err) {
-      console.error(`AI ${action} error:`, err);
-      const message = err instanceof Error ? err.message : `An unexpected error occurred during AI ${action}.`;
+      console.error("AI note generation error:", err);
+      const message = err instanceof Error ? err.message : "An unexpected error occurred during AI note generation.";
       setError(message);
-      toast({ variant: "destructive", title: `AI ${action} Error`, description: message });
+      toast({ variant: "destructive", title: "AI Processing Error", description: message });
     } finally {
-      setIsLoadingAi(false);
+      setIsLoadingAiProcessing(false);
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!generatedNotesBody && !generatedNotesHeading) {
+      toast({ variant: "destructive", title: "Error", description: "No generated notes to download." });
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+    toast({ title: "Generating PDF...", description: "Please wait a moment." });
+
+    try {
+      const tempElement = document.createElement('div');
+      tempElement.style.position = 'absolute';
+      tempElement.style.left = '-9999px';
+      tempElement.style.width = '700px'; 
+      tempElement.style.padding = '20px';
+      tempElement.style.fontFamily = 'Inter, sans-serif';
+      tempElement.style.backgroundColor = '#ffffff';
+
+      let pdfContentHtml = '';
+      if (generatedNotesHeading) {
+        const headingDiv = document.createElement('div');
+        headingDiv.style.fontSize = '16pt';
+        headingDiv.style.fontWeight = 'bold';
+        headingDiv.style.marginBottom = '12pt';
+        headingDiv.style.color = '#000';
+        headingDiv.innerHTML = generatedNotesHeading; // Renders <strong>
+        pdfContentHtml += headingDiv.outerHTML;
+      }
+      if (generatedNotesBody) {
+        const bodyDiv = document.createElement('div');
+        bodyDiv.innerHTML = generatedNotesBody.replace(/\n/g, '<br />'); // Renders <strong> and newlines
+        pdfContentHtml += bodyDiv.outerHTML;
+      }
+      
+      tempElement.innerHTML = `<div style="font-size: 12pt; line-height: 1.5; color: #333; background-color: #fff; white-space: pre-wrap;">${pdfContentHtml}</div>`;
+      document.body.appendChild(tempElement);
+
+      const canvas = await html2canvas(tempElement, {
+        scale: 2, 
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      document.body.removeChild(tempElement);
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4',
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const margin = 40;
+      const contentWidth = pdfWidth - 2 * margin;
+      
+      const imgReportedWidth = canvas.width / 2;
+      const imgReportedHeight = canvas.height / 2;
+      
+      const ratio = imgReportedWidth / imgReportedHeight;
+      let imgDisplayWidth = contentWidth;
+      let imgDisplayHeight = imgDisplayWidth / ratio;
+
+      if (imgDisplayHeight > pdfHeight - 2 * margin) {
+        imgDisplayHeight = pdfHeight - 2 * margin;
+        imgDisplayWidth = imgDisplayHeight * ratio;
+      }
+      
+      const x = margin + (contentWidth - imgDisplayWidth) / 2;
+      const y = margin;
+
+      pdf.addImage(imgData, 'PNG', x, y, imgDisplayWidth, imgDisplayHeight);
+      pdf.save(`advanced_study_notes.pdf`);
+      toast({ title: "Downloaded", description: "Advanced study notes downloaded as PDF." });
+    } catch (e) {
+      console.error("PDF generation error:", e);
+      toast({ variant: "destructive", title: "PDF Error", description: "Could not generate PDF. See console for details." });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   return (
     <PageContainer
-      title="OCR for Handwritten Notes"
-      description="Upload an image of your handwritten notes to extract text. Then, edit and refine it with AI."
+      title="OCR & Advanced Note Generation"
+      description="Extract text from handwritten notes, then let AI generate detailed study material for you."
     >
       <div className="grid md:grid-cols-2 gap-8">
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-headline flex items-center"><UploadCloud className="mr-2 h-6 w-6 text-primary" />Upload & Extract</CardTitle>
-            <CardDescription>Select an image file and extract the text from it.</CardDescription>
+            <CardTitle className="font-headline flex items-center"><UploadCloud className="mr-2 h-6 w-6 text-primary" />1. Upload & Extract</CardTitle>
+            <CardDescription>Select an image of your notes to extract the text.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
@@ -138,15 +229,15 @@ export default function OcrPage() {
               </div>
             )}
 
-            <Button onClick={handleExtractText} disabled={!selectedFile || isLoadingOcr} className="w-full">
+            <Button onClick={handleExtractText} disabled={!selectedFile || isLoadingOcr || isLoadingAiProcessing} className="w-full">
               {isLoadingOcr ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <ScanText className="mr-2 h-4 w-4" />
               )}
-              Extract Text
+              Extract Text from Image
             </Button>
-            {error && !isLoadingOcr && !isLoadingAi && ( 
+            {error && !isLoadingOcr && !isLoadingAiProcessing && ( 
               <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
@@ -158,31 +249,53 @@ export default function OcrPage() {
 
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-headline flex items-center"><Sparkles className="mr-2 h-6 w-6 text-primary" />Edit & Refine Text</CardTitle>
-            <CardDescription>View the extracted text below. You can edit it directly or use AI tools to refine it.</CardDescription>
+            <CardTitle className="font-headline flex items-center"><Brain className="mr-2 h-6 w-6 text-primary" />2. Review & Generate Advanced Notes</CardTitle>
+            <CardDescription>Edit the extracted text if needed, then generate detailed study notes with AI.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <Label htmlFor="editable-text" className="font-semibold">Extracted Text (Editable)</Label>
             <Textarea
+              id="editable-text"
               value={editableText}
               onChange={(e) => setEditableText(e.target.value)}
-              placeholder="Extracted text will appear here. You can edit it directly."
-              rows={12}
-              className="min-h-[250px]"
-              disabled={isLoadingAi || isLoadingOcr} // Disable if OCR is also loading
+              placeholder="Extracted text will appear here. You can edit it before generating notes."
+              rows={8}
+              className="min-h-[150px]"
+              disabled={isLoadingAiProcessing || isLoadingOcr}
             />
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => handleAiAction("clean")} disabled={isLoadingAi || !editableText.trim()} variant="outline">
-                {isLoadingAi ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Clean
-              </Button>
-              <Button onClick={() => handleAiAction("revise")} disabled={isLoadingAi || !editableText.trim()} variant="outline">
-                 {isLoadingAi ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Revise
-              </Button>
-              <Button onClick={() => handleAiAction("shorten")} disabled={isLoadingAi || !editableText.trim()} variant="outline">
-                 {isLoadingAi ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Shorten
-              </Button>
-            </div>
-            {error && (isLoadingAi || (!isLoadingOcr && error)) && ( // Show if AI error, or general error not related to OCR loading
-              <Alert variant="destructive">
+            <Button onClick={handleGenerateAdvancedNotes} disabled={isLoadingAiProcessing || isLoadingOcr || !editableText.trim()} className="w-full">
+              {isLoadingAiProcessing ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4" />
+              )}
+              Generate Advanced Study Notes
+            </Button>
+
+            { (generatedNotesHeading || generatedNotesBody) && !isLoadingAiProcessing && (
+              <Card className="mt-6 bg-accent/50">
+                <CardHeader>
+                  <CardTitle className="font-headline flex items-center">
+                    <Sparkles className="mr-2 h-5 w-5 text-primary" /> AI-Generated Study Notes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {generatedNotesHeading && (
+                    <div className="text-lg font-semibold" dangerouslySetInnerHTML={{ __html: generatedNotesHeading }} />
+                  )}
+                  {generatedNotesBody && (
+                    <div className="text-sm prose max-w-none prose-sm" dangerouslySetInnerHTML={{ __html: generatedNotesBody.replace(/\n/g, '<br />') }} />
+                  )}
+                   <Button onClick={handleDownloadPdf} disabled={isGeneratingPdf || isLoadingAiProcessing} variant="outline" className="w-full mt-4">
+                      {isGeneratingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType2 className="mr-2 h-4 w-4" />}
+                      {isGeneratingPdf ? 'Generating PDF...' : 'Download Notes as PDF'}
+                    </Button>
+                </CardContent>
+              </Card>
+            )}
+            
+            {error && (isLoadingAiProcessing || (!isLoadingOcr && error)) && (
+              <Alert variant="destructive" className="mt-4">
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Processing Error</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
