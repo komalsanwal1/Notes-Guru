@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Processes text by simplifying, summarizing, or generating Q&A, with options for different formats
@@ -62,7 +63,7 @@ Then, {{mode_prompt_action}} the following text into <strong>{{{format_descripti
 Text: {{{text}}}
 
 {{#if is_simplify_bullet_points}}
-  Instructions for content: Generate comprehensive and informative bullet points. Each bullet point should be well-explained and detailed. Sub-bullets can be used for further detail. Ensure the notes are comprehensive and informative.
+  Instructions for content: Generate <strong>hyper-detailed</strong>, comprehensive, and informative bullet points. Each main bullet point must be thoroughly explained and significantly detailed, exploring the concept in depth. Use sub-bullets extensively to break down complex aspects, provide examples, and add layers of information. The goal is to produce an advanced level of understanding. Ensure the notes are exceptionally comprehensive and richly informative.
 {{/if}}
 {{#if is_simplify_story_format}}
   Instructions for content: Create an engaging narrative that explains the core concepts from the text clearly and thoroughly. Ensure the story is engaging and explains the core concepts clearly.
