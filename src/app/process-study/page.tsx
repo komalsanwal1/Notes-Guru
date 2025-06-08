@@ -9,15 +9,17 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Terminal, Wand2, MessageSquare, Edit, Download, FileType2, Brain } from "lucide-react";
+import { Loader2, Terminal, Wand2, MessageSquare, Edit, FileType2, Brain } from "lucide-react";
 import { processText, type ProcessTextInput, type ProcessTextOutput } from "@/ai/flows/process-text-flow";
 import { studyChat, type StudyChatInput, type StudyChatOutput } from "@/ai/flows/study-chat";
 import ChatInterface, { createChatMessage } from "@/components/shared/chat-interface";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type ProcessingMode = "simplify" | "summarize";
-type OutputFormat = "bullet_points" | "story_format"; // "story_format" for simplify, "story" for summarize (handled by flow)
+type OutputFormat = "bullet_points" | "story_format";
 
 export default function ProcessStudyPage() {
   const [inputText, setInputText] = useState("");
@@ -25,6 +27,7 @@ export default function ProcessStudyPage() {
   const [format, setFormat] = useState<OutputFormat>("bullet_points");
   const [processedText, setProcessedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialProcessingDone, setInitialProcessingDone] = useState(false);
   const [refinementChatKey, setRefinementChatKey] = useState(0);
@@ -73,32 +76,78 @@ export default function ProcessStudyPage() {
       ? [createChatMessage("system", "You can ask follow-up questions about the processed text below. I can use my general knowledge if needed.")]
       : [createChatMessage("system", "Process some text first to enable follow-up questions.")];
   }, [initialProcessingDone, processedText, refinementChatKey]);
-
-
-  const handleDownloadMarkdown = () => {
+  
+  const handleDownloadPdf = async () => {
     if (!processedText) {
       toast({ variant: "destructive", title: "Error", description: "No processed text to download." });
       return;
     }
-    const markdownText = processedText
-      .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
-      .replace(/<br\s*\/?>/gi, "\n");
 
-    const blob = new Blob([markdownText], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${mode}_${format}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({ title: "Downloaded", description: "Processed text downloaded as Markdown." });
+    setIsGeneratingPdf(true);
+    toast({ title: "Generating PDF...", description: "Please wait a moment." });
+
+    try {
+      const tempElement = document.createElement('div');
+      tempElement.style.position = 'absolute';
+      tempElement.style.left = '-9999px';
+      tempElement.style.width = '700px';
+      tempElement.style.padding = '20px';
+      tempElement.style.fontFamily = 'Inter, sans-serif';
+      // Ensure the HTML content uses the same font styles as the display for consistency
+      // The ChatMessage component uses whitespace-pre-wrap, so we should try to mimic that.
+      // Directly setting innerHTML with processedText will render the <strong> tags.
+      tempElement.innerHTML = `<div style="font-size: 14px; line-height: 1.6; color: #333; background-color: #fff; white-space: pre-wrap;">${processedText}</div>`;
+      document.body.appendChild(tempElement);
+
+      const canvas = await html2canvas(tempElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null, // Use transparent background for canvas, then fill in PDF
+      });
+
+      document.body.removeChild(tempElement);
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width / 2; // Adjust for scale
+      const imgHeight = canvas.height / 2; // Adjust for scale
+      
+      const margin = 40; // pt
+      const contentWidth = pdfWidth - 2 * margin;
+      const contentHeight = pdfHeight - 2 * margin;
+
+      const ratio = imgWidth / imgHeight;
+      let newImgWidth = contentWidth;
+      let newImgHeight = newImgWidth / ratio;
+
+      if (newImgHeight > contentHeight) {
+        newImgHeight = contentHeight;
+        newImgWidth = newImgHeight * ratio;
+      }
+      
+      const x = margin + (contentWidth - newImgWidth) / 2;
+      const y = margin;
+
+      pdf.setFillColor(255, 255, 255); // White background for the PDF page
+      pdf.rect(0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), 'F');
+
+      pdf.addImage(imgData, 'PNG', x, y, newImgWidth, newImgHeight);
+      pdf.save(`${mode}_${format}.pdf`);
+      toast({ title: "Downloaded", description: "Processed text downloaded as PDF." });
+    } catch (e) {
+      console.error("PDF generation error:", e);
+      toast({ variant: "destructive", title: "PDF Error", description: "Could not generate PDF. See console for details." });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
-  
-  const handleDownloadPdf = () => {
-    toast({ title: "Coming Soon", description: "PDF download functionality is under development." });
-  }
 
 
   return (
@@ -161,7 +210,7 @@ export default function ProcessStudyPage() {
               </RadioGroup>
             </div>
 
-            <Button onClick={handleProcessText} disabled={isLoading} className="w-full">
+            <Button onClick={handleProcessText} disabled={isLoading || isGeneratingPdf} className="w-full">
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -224,13 +273,9 @@ export default function ProcessStudyPage() {
                     inputPlaceholder="e.g., 'make it shorter', 'explain more'"
                   />
                   <div className="p-4 border-t flex gap-2 justify-end">
-                    <Button onClick={handleDownloadMarkdown} disabled={!processedText || isLoading} variant="outline">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download Markdown
-                    </Button>
-                    <Button onClick={handleDownloadPdf} disabled={!processedText || isLoading} variant="outline">
-                      <FileType2 className="mr-2 h-4 w-4" />
-                      Download PDF (Soon)
+                    <Button onClick={handleDownloadPdf} disabled={!processedText || isLoading || isGeneratingPdf} variant="outline">
+                      {isGeneratingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType2 className="mr-2 h-4 w-4" />}
+                      {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF'}
                     </Button>
                   </div>
                   </>
