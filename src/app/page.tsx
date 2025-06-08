@@ -2,7 +2,7 @@
 import HeroSection from '@/components/features/hero-section';
 import PageContainer from '@/components/shared/page-container';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, CheckCircle2, Brain } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Brain, ScanText } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -14,10 +14,10 @@ const features = [
     icon: <Brain className="w-6 h-6 text-primary" />
   },
   {
-    title: "OCR for Handwritten Notes",
-    description: "Convert handwritten notes from images into editable digital text. Clean, revise, and shorten with AI assistance.",
+    title: "OCR & Advanced Note Generation",
+    description: "Extract text from handwritten notes, then let AI generate detailed study material for you.",
     href: "/ocr",
-    icon: <CheckCircle2 className="w-6 h-6 text-primary" />
+    icon: <ScanText className="w-6 h-6 text-primary" /> // Changed icon to be more relevant
   },
   {
     title: "General Study Chat",

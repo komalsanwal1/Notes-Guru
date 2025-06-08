@@ -8,6 +8,6 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { title: 'Home', href: '/' },
   { title: 'Process & Study', href: '/process-study' },
-  { title: 'OCR Handwritten', href: '/ocr' },
+  { title: 'OCR & Advanced Notes', href: '/ocr' },
   { title: 'Study Chat', href: '/study-chat' },
 ];
