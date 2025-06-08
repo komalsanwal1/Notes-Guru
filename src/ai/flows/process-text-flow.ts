@@ -129,12 +129,16 @@ const processTextFlow = ai.defineFlow(
     const {output} = await prompt(promptInput);
 
     if (output) {
-      // Clean up whitespace
       if (output.processedText) {
-        let cleanedText = output.processedText.trim();
-        // Replace 3 or more newlines with exactly two newlines
-        cleanedText = cleanedText.replace(/\n\s*\n\s*\n/g, '\n\n'); // Handles newlines with spaces in between
-        cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n'); // Handles consecutive newlines without spaces
+        let cleanedText = output.processedText.trim(); 
+        // Normalize all newline types to \n
+        cleanedText = cleanedText.replace(/\r\n|\r/g, '\n');
+        // Remove lines that are empty or contain only whitespace
+        cleanedText = cleanedText.replace(/^\s*$/gm, '');
+        // Consolidate multiple newlines (2 or more) into exactly two newlines (one blank line)
+        cleanedText = cleanedText.replace(/\n{2,}/g, '\n\n');
+        // Trim again to remove any leading/trailing newlines that might have been created
+        cleanedText = cleanedText.trim();
         output.processedText = cleanedText;
       }
       if (output.generatedHeading) {
@@ -145,3 +149,4 @@ const processTextFlow = ai.defineFlow(
     return output!;
   }
 );
+
