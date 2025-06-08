@@ -50,12 +50,20 @@ The previous simplified text (in {{{format}}} format) was:
 The user's refinement instruction is:
 {{{refinementInstruction}}}
 
-Please provide the new, refined simplified text, keeping the {{{format}}} format. Remember to use <strong> tags for any bold text.
+Please provide the new, refined simplified text, keeping the {{{format}}} format.
+Instructions for output:
+- If the format is "bullet points", ensure the refined notes are comprehensive and informative. Each bullet point should be well-explained and detailed. Sub-bullets can be used for further detail.
+- If the format is "story format", ensure the refined story is engaging and explains the core concepts clearly and thoroughly.
+- Remember to use <strong> tags for any bold text.
 {{else}}
 Please simplify the following text into the format requested by the user.
 Text: {{{text}}}
 Format: {{{format}}}
-Output the simplified text. Remember to use <strong> tags for any bold text.
+
+Instructions for output:
+- If the format is "bullet points", generate comprehensive and informative notes. Each bullet point should be well-explained and detailed. Sub-bullets can be used for further detail.
+- If the format is "story format", create an engaging narrative that explains the core concepts from the text clearly and thoroughly.
+- Output the simplified text. Remember to use <strong> tags for any bold text.
 {{/if}}`,
 });
 
