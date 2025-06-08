@@ -3,8 +3,7 @@
 
 **Simplify, summarize, understand, and chat with your notes using the power of AI. NoteGuru is designed to transform your study and note-taking experience, making learning smarter and more efficient.**
 
-![NoteGuru Logo](https://placehold.co/120x120.png?text=NoteGuru)
-*(Replace with actual logo if available)*
+
 
 ## Table of Contents
 
