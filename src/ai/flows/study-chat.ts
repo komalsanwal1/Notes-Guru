@@ -1,8 +1,10 @@
 // src/ai/flows/study-chat.ts
 'use server';
 /**
- * @fileOverview A study chat AI agent that answers questions about provided notes or from general knowledge,
- * maintaining conversational context.
+ * @fileOverview A study chat AI agent.
+ * If notes are provided, it answers questions about them.
+ * If no notes are provided, it acts as a general AI study assistant.
+ * Maintains conversational context and focuses on study-related topics.
  *
  * - studyChat - A function that handles the study chat process.
  * - StudyChatInput - The input type for the studyChat function.
@@ -10,11 +12,11 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z}from 'genkit';
 
 const StudyChatInputSchema = z.object({
-  notes: z.string().describe('The notes to study. The AI will prioritize this information if relevant.'),
-  question: z.string().describe('The question to ask about the notes or for general knowledge.'),
+  notes: z.string().optional().describe('The notes to study. The AI will prioritize this information if relevant. If not provided, AI acts as a general study assistant.'),
+  question: z.string().describe('The question to ask.'),
   chatHistory: z.array(z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string()
@@ -23,7 +25,7 @@ const StudyChatInputSchema = z.object({
 export type StudyChatInput = z.infer<typeof StudyChatInputSchema>;
 
 const StudyChatOutputSchema = z.object({
-  answer: z.string().describe('The answer to the question, based on the notes if relevant, or general knowledge.'),
+  answer: z.string().describe('The answer to the question, based on notes (if provided and relevant) or general knowledge.'),
 });
 export type StudyChatOutput = z.infer<typeof StudyChatOutputSchema>;
 
@@ -35,24 +37,31 @@ const prompt = ai.definePrompt({
   name: 'studyChatPrompt',
   input: {schema: StudyChatInputSchema},
   output: {schema: StudyChatOutputSchema},
-  prompt: `You are a helpful study assistant. Your goal is to answer the user's question accurately and concisely.
-Consider the ongoing conversation history provided below for context.
+  prompt: `You are a dedicated AI Study Assistant for students. Your primary goal is to help with academic questions and learning.
+You MUST stick to educational topics. If a question is not related to studying, school subjects, academic concepts, or learning, politely state that you are designed for study-related assistance and cannot answer that type of question.
+Maintain a friendly, encouraging, and supportive tone suitable for a student.
+When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).
+
+{{#if notes}}
+You have been provided with specific notes. Prioritize information from these notes if it's relevant to the current user's question.
+If the notes do not contain the answer, or only partially cover it, use your general knowledge to provide a comprehensive and precise answer. Do not simply state that the information is not in the notes if you can answer it from general knowledge.
+
+Notes:
+{{{notes}}}
+{{else}}
+You are operating in general knowledge mode. Use your comprehensive knowledge base to answer study-related questions.
+{{/if}}
 
 {{#if formattedChatHistory}}
-<strong>Conversation History:</strong>
+<strong>Conversation History (for context):</strong>
 {{{formattedChatHistory}}}
 ---
 {{/if}}
 
-First, check if the provided 'Notes' section contains information relevant to the current 'Question'. If it does, prioritize using that information in your answer.
-If the 'Notes' do not contain the answer, or only partially cover it, **you MUST use your general knowledge to provide a comprehensive and precise answer.** Do not simply state that the information is not in the notes if you can answer it from general knowledge.
-When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).
-
-Notes:
-{{{notes}}}
-
 Current Question:
-{{{question}}}`,
+{{{question}}}
+
+Please provide a clear, accurate, and helpful answer to the student's question.`,
 });
 
 const studyChatFlow = ai.defineFlow(
