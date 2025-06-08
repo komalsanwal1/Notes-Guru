@@ -51,7 +51,13 @@ export default function SummarizePage() {
       toast({ variant: "destructive", title: "Error", description: "No summary to download." });
       return;
     }
-    const blob = new Blob([summarizedNotes], { type: "text/markdown" });
+    // Basic conversion from <strong> to ** for Markdown.
+    // This is a simplified approach and might not cover all HTML cases.
+    const markdownText = summarizedNotes
+      .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
+      .replace(/<br\s*\/?>/gi, "\n"); // Convert <br> to newlines for Markdown
+
+    const blob = new Blob([markdownText], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -135,9 +141,10 @@ export default function SummarizePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {summarizedNotes ? (
-              <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap p-4 border rounded-md bg-muted/50 min-h-[200px]">
-                {summarizedNotes}
-              </div>
+              <div
+                className="prose dark:prose-invert max-w-none whitespace-pre-wrap p-4 border rounded-md bg-muted/50 min-h-[200px]"
+                dangerouslySetInnerHTML={{ __html: summarizedNotes }}
+              />
             ) : (
               <p className="text-muted-foreground text-center py-10">Your summary will appear here.</p>
             )}

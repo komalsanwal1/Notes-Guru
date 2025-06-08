@@ -10,6 +10,19 @@ export interface ChatMessageProps {
 
 const ChatMessage = ({ role, content }: ChatMessageProps) => {
   const isUser = role === "user";
+  const isSystem = role === "system";
+
+  // System messages might not need an avatar or special styling,
+  // or they could have their own distinct style.
+  // For now, let's make them a bit plainer.
+  if (isSystem) {
+    return (
+      <div className="my-3 text-xs text-muted-foreground italic px-4 py-2 text-center">
+        <p className="whitespace-pre-wrap">{content}</p>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -32,7 +45,12 @@ const ChatMessage = ({ role, content }: ChatMessageProps) => {
             : "bg-card text-card-foreground"
         )}
       >
-        <p className="text-sm whitespace-pre-wrap">{content}</p>
+        {/* Render HTML content for assistant messages, plain text for user messages */}
+        {role === 'assistant' ? (
+          <div className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: content }} />
+        ) : (
+          <p className="text-sm whitespace-pre-wrap">{content}</p>
+        )}
       </div>
       {isUser && (
          <Avatar className="h-8 w-8">

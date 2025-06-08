@@ -31,12 +31,19 @@ const summarizeNotesPrompt = ai.definePrompt({
   output: {
     schema: SummarizeNotesOutputSchema,
   },
-  prompt: `You are an expert note-taker and summarizer. Please summarize the following notes into a concise and clear format.
+  prompt: `You are an expert note-taker and summarizer. Your goal is to transform the given notes into the desired format, ensuring clarity, accuracy, and appropriate detail.
 When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).
 
-Notes: {{{notes}}}
+Notes:
+{{{notes}}}
 
 Desired Format: {{{format}}}
+
+Instructions for output:
+- If the format is "bullet points", generate comprehensive and informative notes. Each bullet point should be well-explained and detailed. Sub-bullets can be used for further detail if it helps clarity and depth. The summary should be a thorough representation of the original notes.
+- If the format is "story", create an engaging narrative that accurately captures the key information and concepts from the notes. The story should be detailed enough to be informative while remaining coherent and easy to follow.
+
+Please provide the summary in the requested format.
 
 Summary:`,
 });
@@ -55,3 +62,4 @@ const summarizeNotesFlow = ai.defineFlow(
     };
   }
 );
+
