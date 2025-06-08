@@ -3,7 +3,8 @@ import HeroSection from '@/components/features/hero-section';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowRight, Brain, ScanText, MessageSquare, UploadCloud, Cpu, FileText, Clock, Lightbulb, TrendingUp, Settings2, Star } from 'lucide-react';
+import { ArrowRight, Brain, ScanText, MessageSquare, UploadCloud, Cpu, FileText, Clock, Lightbulb, TrendingUp, Settings2, Star, Mail, Linkedin, Github } from 'lucide-react';
+import { Twitter } from 'lucide-react'; // Corrected import for Twitter if it's the brand icon
 
 const features = [
   {
@@ -48,22 +49,22 @@ const benefits = [
   {
     title: "Save Precious Time",
     description: "Condense hours of note-taking and revision into minutes of focused, AI-enhanced study material.",
-    icon: <Clock className="w-8 h-8 text-accent-foreground" />
+    icon: <Clock className="w-8 h-8 text-primary-foreground" />
   },
   {
     title: "Deepen Understanding",
     description: "Grasp complex topics effortlessly with AI-powered explanations, simplifications, and summaries.",
-    icon: <Lightbulb className="w-8 h-8 text-accent-foreground" />
+    icon: <Lightbulb className="w-8 h-8 text-primary-foreground" />
   },
   {
     title: "Boost Your Grades",
     description: "Better notes lead to better understanding, which translates to improved academic performance.",
-    icon: <TrendingUp className="w-8 h-8 text-accent-foreground" />
+    icon: <TrendingUp className="w-8 h-8 text-primary-foreground" />
   },
   {
     title: "Versatile Study Tools",
     description: "From OCR for handwritten notes to advanced text processing, get everything you need in one platform.",
-    icon: <Settings2 className="w-8 h-8 text-accent-foreground" />
+    icon: <Settings2 className="w-8 h-8 text-primary-foreground" />
   }
 ];
 
@@ -84,6 +85,38 @@ const testimonials = [
     role: "Lifelong Learner"
   }
 ];
+
+const contactMethods = [
+  {
+    name: "Email Us",
+    value: "support@noteguru.app",
+    href: "mailto:support@noteguru.app",
+    icon: <Mail className="w-8 h-8 text-primary group-hover:text-blue-500 transition-colors" />,
+    description: "For general inquiries, support, or feedback."
+  },
+  {
+    name: "Twitter / X",
+    value: "@NoteGuruApp",
+    href: "https://twitter.com/NoteGuruApp", // Placeholder
+    icon: <Twitter className="w-8 h-8 text-primary group-hover:text-sky-500 transition-colors" />,
+    description: "Follow us for updates and news."
+  },
+  {
+    name: "LinkedIn",
+    value: "NoteGuru",
+    href: "https://linkedin.com/company/noteguru", // Placeholder
+    icon: <Linkedin className="w-8 h-8 text-primary group-hover:text-blue-700 transition-colors" />,
+    description: "Connect with us professionally."
+  },
+  {
+    name: "GitHub",
+    value: "NoteGuruOrg",
+    href: "https://github.com/NoteGuruOrg", // Placeholder
+    icon: <Github className="w-8 h-8 text-primary group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />,
+    description: "Check out our open source projects."
+  }
+];
+
 
 export default function HomePage() {
   return (
@@ -191,6 +224,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      
+      {/* Contact Section moved to /contact page */}
 
       {/* Final CTA Section */}
       <section className="py-16 md:py-24 text-center">
