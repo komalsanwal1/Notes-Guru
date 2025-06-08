@@ -220,7 +220,7 @@ export default function HomePage() {
       </section>
 
       {/* Contact Us Section */}
-      <section className="py-12 md:py-16">
+      <section id="contact" className="py-12 md:py-16">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold font-headline text-center mb-4">Get in Touch</h2>
           <p className="text-lg text-muted-foreground text-center mb-12 max-w-2xl mx-auto">

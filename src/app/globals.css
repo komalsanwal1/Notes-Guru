@@ -60,6 +60,10 @@
 }
 
 @layer base {
+  html {
+    @apply scroll-smooth;
+    scroll-padding-top: 5rem; /* Adjust as needed based on your sticky header's height */
+  }
   * {
     @apply border-border;
   }
