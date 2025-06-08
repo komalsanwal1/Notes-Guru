@@ -155,7 +155,7 @@ export default function HomePage() {
               </p>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
                 {benefits.map((benefit) => (
-                  <div key={benefit.title} className="flex items-start gap-4">
+                  <div key={benefit.title} className="flex items-center gap-4">
                     <div className="flex-shrink-0 bg-primary text-primary-foreground p-3 rounded-full">
                       {benefit.icon}
                     </div>
