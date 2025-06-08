@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -9,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Terminal, Wand2, MessageSquare, Edit, FileType2, Brain } from "lucide-react";
+import { Loader2, Terminal, Wand2, MessageSquare, Edit, FileType2, Brain, HelpCircle } from "lucide-react";
 import { processText, type ProcessTextInput, type ProcessTextOutput } from "@/ai/flows/process-text-flow";
 import { studyChat, type StudyChatInput, type StudyChatOutput } from "@/ai/flows/study-chat";
 import ChatInterface, { createChatMessage } from "@/components/shared/chat-interface";
@@ -18,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-type ProcessingMode = "simplify" | "summarize";
+type ProcessingMode = "simplify" | "summarize" | "generate_qa";
 type OutputFormat = "bullet_points" | "story_format";
 
 export default function ProcessStudyPage() {
@@ -50,7 +49,8 @@ export default function ProcessStudyPage() {
       setProcessedText(result.processedText);
       setInitialProcessingDone(true);
       setRefinementChatKey(prev => prev + 1);
-      toast({ title: "Success", description: `Text ${mode}d into ${format.replace("_", " ")}.` });
+      const modeFriendlyName = mode === 'generate_qa' ? 'Q&A' : mode;
+      toast({ title: "Success", description: `Successfully generated ${modeFriendlyName.replace("_", " ")} in ${format.replace("_", " ")} format.` });
     } catch (err) {
       console.error("Processing error:", err);
       const message = err instanceof Error ? err.message : "An unexpected error occurred during processing.";
@@ -63,8 +63,13 @@ export default function ProcessStudyPage() {
 
   const refinementChatInitialMessages = useMemo(() => {
     if (initialProcessingDone && processedText.trim()) {
+      let modeDescription = "";
+      if (mode === 'simplify') modeDescription = "simplification";
+      else if (mode === 'summarize') modeDescription = "summary";
+      else if (mode === 'generate_qa') modeDescription = "Q&A generation";
+
       return [
-        createChatMessage("system", `This is the initial ${mode === 'simplify' ? 'simplification' : 'summary'}. You can ask me to refine it further (e.g., 'make it shorter', 'explain the first bullet point').`),
+        createChatMessage("system", `This is the initial ${modeDescription}. You can ask me to refine it further (e.g., 'make it shorter', 'explain the first bullet point', 'add more questions').`),
         createChatMessage("assistant", processedText)
       ];
     }
@@ -90,19 +95,16 @@ export default function ProcessStudyPage() {
       const tempElement = document.createElement('div');
       tempElement.style.position = 'absolute';
       tempElement.style.left = '-9999px';
-      tempElement.style.width = '700px';
+      tempElement.style.width = '700px'; // A4-like width for better layouting
       tempElement.style.padding = '20px';
-      tempElement.style.fontFamily = 'Inter, sans-serif';
-      // Ensure the HTML content uses the same font styles as the display for consistency
-      // The ChatMessage component uses whitespace-pre-wrap, so we should try to mimic that.
-      // Directly setting innerHTML with processedText will render the <strong> tags.
-      tempElement.innerHTML = `<div style="font-size: 14px; line-height: 1.6; color: #333; background-color: #fff; white-space: pre-wrap;">${processedText}</div>`;
+      tempElement.style.fontFamily = 'Inter, sans-serif'; // Match app font
+      tempElement.innerHTML = `<div style="font-size: 12pt; line-height: 1.5; color: #333; background-color: #fff; white-space: pre-wrap;">${processedText.replace(/\n/g, '<br />')}</div>`;
       document.body.appendChild(tempElement);
 
       const canvas = await html2canvas(tempElement, {
-        scale: 2,
+        scale: 2, // Higher scale for better quality
         useCORS: true,
-        backgroundColor: null, // Use transparent background for canvas, then fill in PDF
+        backgroundColor: '#ffffff', // Ensure canvas has white background
       });
 
       document.body.removeChild(tempElement);
@@ -116,29 +118,28 @@ export default function ProcessStudyPage() {
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width / 2; // Adjust for scale
-      const imgHeight = canvas.height / 2; // Adjust for scale
       
       const margin = 40; // pt
       const contentWidth = pdfWidth - 2 * margin;
-      const contentHeight = pdfHeight - 2 * margin;
+      
+      const imgReportedWidth = canvas.width / 2; // Adjust for scale
+      const imgReportedHeight = canvas.height / 2; // Adjust for scale
+      
+      const ratio = imgReportedWidth / imgReportedHeight;
+      let imgDisplayWidth = contentWidth;
+      let imgDisplayHeight = imgDisplayWidth / ratio;
 
-      const ratio = imgWidth / imgHeight;
-      let newImgWidth = contentWidth;
-      let newImgHeight = newImgWidth / ratio;
-
-      if (newImgHeight > contentHeight) {
-        newImgHeight = contentHeight;
-        newImgWidth = newImgHeight * ratio;
+      // If image height is still too large for one page, we might need to split it or scale it down further.
+      // For simplicity, we'll scale to fit a single page height if it overflows.
+      if (imgDisplayHeight > pdfHeight - 2 * margin) {
+        imgDisplayHeight = pdfHeight - 2 * margin;
+        imgDisplayWidth = imgDisplayHeight * ratio;
       }
       
-      const x = margin + (contentWidth - newImgWidth) / 2;
+      const x = margin + (contentWidth - imgDisplayWidth) / 2; // Center horizontally
       const y = margin;
 
-      pdf.setFillColor(255, 255, 255); // White background for the PDF page
-      pdf.rect(0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), 'F');
-
-      pdf.addImage(imgData, 'PNG', x, y, newImgWidth, newImgHeight);
+      pdf.addImage(imgData, 'PNG', x, y, imgDisplayWidth, imgDisplayHeight);
       pdf.save(`${mode}_${format}.pdf`);
       toast({ title: "Downloaded", description: "Processed text downloaded as PDF." });
     } catch (e) {
@@ -153,7 +154,7 @@ export default function ProcessStudyPage() {
   return (
     <PageContainer
       title="Process & Study Text"
-      description="Simplify complex information, summarize key points, or generate detailed notes. Refine with AI and ask follow-up questions."
+      description="Simplify complex information, summarize key points, generate Q&A, and more. Refine with AI and ask follow-up questions."
     >
       <div className="grid md:grid-cols-2 gap-8">
         <Card className="shadow-lg">
@@ -178,8 +179,8 @@ export default function ProcessStudyPage() {
               <Label className="font-semibold">Processing Mode</Label>
               <RadioGroup
                 value={mode}
-                onValueChange={(value: ProcessingMode) => setMode(value)}
-                className="flex space-x-4"
+                onValueChange={(value: string) => setMode(value as ProcessingMode)}
+                className="flex flex-wrap gap-x-4 gap-y-2"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="simplify" id="simplify-mode" />
@@ -189,6 +190,10 @@ export default function ProcessStudyPage() {
                   <RadioGroupItem value="summarize" id="summarize-mode" />
                   <Label htmlFor="summarize-mode">Summarize</Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="generate_qa" id="generate-qa-mode" />
+                  <Label htmlFor="generate-qa-mode">Generate Q&A</Label>
+                </div>
               </RadioGroup>
             </div>
             
@@ -196,7 +201,7 @@ export default function ProcessStudyPage() {
               <Label className="font-semibold">Output Format</Label>
               <RadioGroup
                 value={format}
-                onValueChange={(value: OutputFormat) => setFormat(value)}
+                onValueChange={(value: string) => setFormat(value as OutputFormat)}
                 className="flex space-x-4"
               >
                 <div className="flex items-center space-x-2">
@@ -267,10 +272,10 @@ export default function ProcessStudyPage() {
                     }}
                     transformOutput={(aiResponse) => aiResponse.processedText}
                     onNewAiMessageContent={(newText) => {
-                      setProcessedText(newText);
+                      setProcessedText(newText); // Update the main processedText state for PDF download and study chat
                     }}
                     chatContainerClassName="h-[calc(440px-120px)]" 
-                    inputPlaceholder="e.g., 'make it shorter', 'explain more'"
+                    inputPlaceholder="e.g., 'make it shorter', 'add more detail'"
                   />
                   <div className="p-4 border-t flex gap-2 justify-end">
                     <Button onClick={handleDownloadPdf} disabled={!processedText || isLoading || isGeneratingPdf} variant="outline">
@@ -298,10 +303,10 @@ export default function ProcessStudyPage() {
               <CardContent className="p-0">
                 {initialProcessingDone && processedText.trim() ? (
                    <ChatInterface<StudyChatInput, StudyChatOutput>
-                    instanceKey={`study-${refinementChatKey}-${processedText.length}`}
+                    instanceKey={`study-${refinementChatKey}-${processedText.length}`} // Ensure re-render if processedText changes
                     aiFlow={studyChat}
                     transformInput={(userInput) => ({
-                      notes: processedText, 
+                      notes: processedText, // Use the latest processed text from state
                       question: userInput,
                     })}
                     transformOutput={(aiResponse) => aiResponse.answer}
@@ -322,3 +327,4 @@ export default function ProcessStudyPage() {
     </PageContainer>
   );
 }
+
