@@ -31,7 +31,8 @@ const summarizeNotesPrompt = ai.definePrompt({
   output: {
     schema: SummarizeNotesOutputSchema,
   },
-  prompt: `You are an expert note-taker and summarizer. Please summarize the following notes into a concise and clear format. 
+  prompt: `You are an expert note-taker and summarizer. Please summarize the following notes into a concise and clear format.
+When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).
 
 Notes: {{{notes}}}
 

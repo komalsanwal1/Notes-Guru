@@ -30,7 +30,8 @@ const prompt = ai.definePrompt({
   name: 'studyChatPrompt',
   input: {schema: StudyChatInputSchema},
   output: {schema: StudyChatOutputSchema},
-  prompt: `You are a study assistant. Answer the question based on the notes provided. Be concise and helpful.\n\nNotes: {{{notes}}}\n\nQuestion: {{{question}}}`,
+  prompt: `You are a study assistant. Answer the question based on the notes provided. Be concise and helpful.
+When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).\n\nNotes: {{{notes}}}\n\nQuestion: {{{question}}}`,
 });
 
 const studyChatFlow = ai.defineFlow(

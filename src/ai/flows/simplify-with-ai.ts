@@ -34,7 +34,8 @@ const prompt = ai.definePrompt({
   output: {schema: SimplifyTextOutputSchema},
   prompt: `You are an AI expert in simplifying complex texts.
 
-  Please simplify the following text into the format requested by the user:
+  Please simplify the following text into the format requested by the user.
+  When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).
 
   Text: {{{text}}}
 
