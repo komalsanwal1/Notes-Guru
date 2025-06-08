@@ -10,5 +10,5 @@ export const NAV_ITEMS: NavItem[] = [
   { title: 'Process & Study', href: '/process-study' },
   { title: 'OCR & Advanced Notes', href: '/ocr' },
   { title: 'Study Chat', href: '/study-chat' },
-  { title: 'Contact', href: '/#contact' },
+  { title: 'Contact', href: '/contact' },
 ];
