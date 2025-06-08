@@ -17,7 +17,7 @@ const features = [
     title: "OCR & Advanced Note Generation",
     description: "Extract text from handwritten notes, then let AI generate detailed study material for you.",
     href: "/ocr",
-    icon: <ScanText className="w-8 h-8 text-primary" /> 
+    icon: <ScanText className="w-8 h-8 text-primary" />
   },
   {
     title: "General Study Chat",
@@ -70,12 +70,12 @@ const benefits = [
 
 const testimonials = [
   {
-    quote: "NoteGuru has revolutionized how I study. The OCR is a lifesaver for my messy handwriting, and the AI summaries are spot on!",
+    quote: "NotesGuru has revolutionized how I study. The OCR is a lifesaver for my messy handwriting, and the AI summaries are spot on!",
     name: "Alex P.",
     role: "University Student"
   },
   {
-    quote: "I used to spend hours deciphering my notes. Now, with NoteGuru, I get clear, detailed study guides in minutes. My grades have actually improved!",
+    quote: "I used to spend hours deciphering my notes. Now, with NotesGuru, I get clear, detailed study guides in minutes. My grades have actually improved!",
     name: "Sarah K.",
     role: "High School Senior"
   },
@@ -84,6 +84,13 @@ const testimonials = [
     name: "Mike B.",
     role: "Lifelong Learner"
   }
+];
+
+const contactMethods = [
+  { name: "Email Us", detail: "support@notesguru.com", href: "mailto:support@notesguru.com", icon: <Mail className="w-8 h-8 text-primary" /> },
+  { name: "Twitter", detail: "@NotesGuruApp", href: "#", icon: <Twitter className="w-8 h-8 text-primary" /> },
+  { name: "LinkedIn", detail: "NotesGuru", href: "#", icon: <Linkedin className="w-8 h-8 text-primary" /> },
+  { name: "GitHub", detail: "NotesGuruRepo", href: "#", icon: <Github className="w-8 h-8 text-primary" /> },
 ];
 
 
@@ -97,7 +104,7 @@ export default function HomePage() {
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold font-headline text-center mb-4">Your All-In-One AI Study Partner</h2>
           <p className="text-lg text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-            NoteGuru offers a suite of powerful tools designed to help you learn smarter, not harder. Explore what you can achieve:
+            NotesGuru offers a suite of powerful tools designed to help you learn smarter, not harder. Explore what you can achieve:
           </p>
           <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3">
             {features.map((feature) => (
@@ -126,7 +133,7 @@ export default function HomePage() {
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold font-headline text-center mb-4">Get Started in 3 Simple Steps</h2>
           <p className="text-lg text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-            Transforming your notes into powerful study assets is quick and easy with NoteGuru.
+            Transforming your notes into powerful study assets is quick and easy with NotesGuru.
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {howItWorksSteps.map((step, index) => (
@@ -146,14 +153,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why NoteGuru? / Benefits Section */}
+      {/* Why NotesGuru? / Benefits Section */}
       <section className="py-12 md:py-16">
         <div className="container px-4 md:px-6">
           <div className="flex justify-center">
             <div className="w-full lg:w-2/3 text-center lg:text-left">
               <h2 className="text-3xl font-bold font-headline mb-6 text-center">Unlock Your Full Study Potential</h2>
               <p className="text-lg text-muted-foreground mb-8 text-center">
-                NoteGuru isn't just another note-taking app. It's a comprehensive AI-powered learning assistant designed to help you excel academically and beyond.
+                NotesGuru isn't just another note-taking app. It's a comprehensive AI-powered learning assistant designed to help you excel academically and beyond.
               </p>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
                 {benefits.map((benefit) => (
@@ -193,13 +200,43 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Contact Us Section */}
+      <section id="contact" className="py-12 md:py-16">
+        <div className="container px-4 md:px-6">
+          <h2 className="text-3xl font-bold font-headline text-center mb-4">Get in Touch</h2>
+          <p className="text-lg text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
+            Have questions or feedback? We&apos;d love to hear from you! Connect with us through any of the channels below.
+          </p>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {contactMethods.map((method) => (
+              <Card key={method.name} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <CardHeader className="items-center text-center">
+                  {method.icon}
+                  <CardTitle className="font-headline text-xl mt-2">{method.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <a
+                    href={method.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary break-all"
+                  >
+                    {method.detail}
+                  </a>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
       
       {/* Final CTA Section */}
       <section className="py-16 md:py-24 text-center bg-accent">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl md:text-4xl font-bold font-headline mb-6">Ready to Elevate Your Studies?</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            Stop struggling with disorganized notes and information overload. Start learning smarter, faster, and more effectively with NoteGuru today!
+            Stop struggling with disorganized notes and information overload. Start learning smarter, faster, and more effectively with NotesGuru today!
           </p>
           <Button asChild size="lg" className="font-semibold text-lg px-8 py-6">
             <Link href="/process-study">
@@ -212,3 +249,4 @@ export default function HomePage() {
     </div>
   );
 }
+
