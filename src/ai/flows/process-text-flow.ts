@@ -23,8 +23,8 @@ const ProcessTextInputSchema = z.object({
 export type ProcessTextInput = z.infer<typeof ProcessTextInputSchema>;
 
 const ProcessTextOutputSchema = z.object({
-  generatedHeading: z.string().describe('A concise and relevant heading for the processed text, using <strong> tags for emphasis if appropriate.'),
-  processedText: z.string().describe('The processed (simplified, summarized, Q&A) or refined text in the specified format. It should be well-formatted without excessive newlines.'),
+  generatedHeading: z.string().describe('A concise and relevant heading for the processed text, using <strong> tags for emphasis if appropriate. HTML <strong> tags MUST be used for any bold text.'),
+  processedText: z.string().describe('The processed (simplified, summarized, Q&A) or refined text in the specified format. It should be well-formatted without excessive newlines. HTML <strong> tags MUST be used for any bold text.'),
 });
 export type ProcessTextOutput = z.infer<typeof ProcessTextOutputSchema>;
 
@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
   input: {schema: ProcessTextInputSchema},
   output: {schema: ProcessTextOutputSchema},
   prompt: `You are an AI expert in text processing and study material generation.
-When you generate text that requires emphasis or bolding, you MUST use HTML <strong> tags (e.g., <strong>This is important</strong>). Do NOT use Markdown like **important**.
+When you generate text that requires emphasis or bolding, you MUST use HTML <strong> tags (e.g., <strong>This is important</strong>). Do NOT use Markdown like **important** or __important__.
 
 {{#if refinementInstruction}}
 You are refining previously processed content.
@@ -55,30 +55,30 @@ The user's refinement instruction for the body or heading is:
 
 Please provide the new, refined heading and body, keeping the same format ({{format_description}}) for the body. If the refinement instruction clearly implies a change to the heading, update it; otherwise, you can keep the previous heading.
 {{{commonInstructions}}}
-Output the (potentially new) heading and the refined processed text according to the output schema.
+Output the (potentially new) heading and the refined processed text according to the output schema. Ensure all bold text uses <strong> tags.
 {{else}}
-First, create a concise and relevant <strong>heading</strong> for the processed content. The heading itself can use <strong> tags for emphasis if appropriate.
-Then, {{mode_prompt_action}} the following text into <strong>{{{format_description}}}</strong>.
+First, create a concise and relevant <strong>heading</strong> for the processed content. The heading itself can use <strong> tags for emphasis if appropriate (NOT Markdown).
+Then, {{mode_prompt_action}} the following text into <strong>{{{format_description}}}</strong>. Ensure all bold text uses <strong> tags (NOT Markdown).
 
 Text: {{{text}}}
 
 {{#if is_simplify_bullet_points}}
-  Instructions for content: Generate <strong>hyper-detailed</strong>, comprehensive, and informative bullet points. Each main bullet point must be thoroughly explained and significantly detailed, exploring the concept in depth. Use sub-bullets extensively to break down complex aspects, provide examples, and add layers of information. The goal is to produce an advanced level of understanding. Ensure the notes are exceptionally comprehensive and richly informative.
+  Instructions for content: Generate <strong>hyper-detailed</strong>, comprehensive, and informative bullet points. Each main bullet point must be thoroughly explained and significantly detailed, exploring the concept in depth. Use sub-bullets extensively to break down complex aspects, provide examples, and add layers of information. The goal is to produce an advanced level of understanding. Ensure the notes are exceptionally comprehensive and richly informative. All bold text MUST use <strong> tags. Do not use Markdown.
 {{/if}}
 {{#if is_simplify_story_format}}
-  Instructions for content: Create an engaging narrative that explains the core concepts from the text clearly and thoroughly. Ensure the story is engaging and explains the core concepts clearly.
+  Instructions for content: Create an engaging narrative that explains the core concepts from the text clearly and thoroughly. Ensure the story is engaging and explains the core concepts clearly. All bold text MUST use <strong> tags. Do not use Markdown.
 {{/if}}
 {{#if is_summarize_bullet_points}}
-  Instructions for content: Generate comprehensive and informative summary bullet points. Each bullet point should be well-explained and detailed. Sub-bullets can be used for further detail if it helps clarity and depth. The summary should be a thorough representation of the original notes.
+  Instructions for content: Generate comprehensive and informative summary bullet points. Each bullet point should be well-explained and detailed. Sub-bullets can be used for further detail if it helps clarity and depth. The summary should be a thorough representation of the original notes. All bold text MUST use <strong> tags. Do not use Markdown.
 {{/if}}
 {{#if is_summarize_story_format}}
-  Instructions for content: Create an engaging narrative that accurately captures the key information and concepts from the notes. The story should be detailed enough to be informative while remaining coherent and easy to follow.
+  Instructions for content: Create an engaging narrative that accurately captures the key information and concepts from the notes. The story should be detailed enough to be informative while remaining coherent and easy to follow. All bold text MUST use <strong> tags. Do not use Markdown.
 {{/if}}
 {{#if is_generate_qa_bullet_points}}
-  Instructions for content: Generate question and answer pairs based on the text. Format each as a bullet point starting with <strong>Question:</strong> followed by the question, and on a new line within the same bullet, <strong>Answer:</strong> followed by the answer. Ensure the questions cover key concepts and the answers are accurate and derived from the text.
+  Instructions for content: Generate question and answer pairs based on the text. Format each as a bullet point starting with <strong>Question:</strong> followed by the question, and on a new line within the same bullet, <strong>Answer:</strong> followed by the answer. Ensure the questions cover key concepts and the answers are accurate and derived from the text. All bold text (like "Question:" and "Answer:") MUST use <strong> tags. Do not use Markdown.
 {{/if}}
 {{#if is_generate_qa_story_format}}
-  Instructions for content: Create an engaging narrative that includes questions about the core concepts from the text and provides their answers within the story. Clearly distinguish questions and answers.
+  Instructions for content: Create an engaging narrative that includes questions about the core concepts from the text and provides their answers within the story. Clearly distinguish questions and answers. All bold text MUST use <strong> tags. Do not use Markdown.
 {{/if}}
 
 {{{commonInstructions}}}
@@ -124,7 +124,7 @@ const processTextFlow = ai.defineFlow(
       is_summarize_story_format: input.mode === 'summarize' && input.format === 'story_format',
       is_generate_qa_bullet_points: input.mode === 'generate_qa' && input.format === 'bullet_points',
       is_generate_qa_story_format: input.mode === 'generate_qa' && input.format === 'story_format',
-      commonInstructions: "Ensure clarity, accuracy, and appropriate detail. Remember to use <strong> tags for any bold text. Format the output cleanly with minimal unnecessary blank lines.",
+      commonInstructions: "Ensure clarity, accuracy, and appropriate detail. Remember: ALL bold text MUST use HTML <strong> tags. DO NOT use Markdown (e.g., **text** or __text__). Format the output cleanly with minimal unnecessary blank lines.",
     };
     const {output} = await prompt(promptInput);
 

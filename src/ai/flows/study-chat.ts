@@ -25,7 +25,7 @@ const StudyChatInputSchema = z.object({
 export type StudyChatInput = z.infer<typeof StudyChatInputSchema>;
 
 const StudyChatOutputSchema = z.object({
-  answer: z.string().describe('The answer to the question, based on notes (if provided and relevant) or general knowledge.'),
+  answer: z.string().describe('The answer to the question, based on notes (if provided and relevant) or general knowledge. All bold text in the answer MUST use HTML <strong> tags, not Markdown.'),
 });
 export type StudyChatOutput = z.infer<typeof StudyChatOutputSchema>;
 
@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
   prompt: `You are a dedicated AI Study Assistant for students. Your primary goal is to help with academic questions and learning.
 You MUST stick to educational topics. If a question is not related to studying, school subjects, academic concepts, or learning, politely state that you are designed for study-related assistance and cannot answer that type of question.
 Maintain a friendly, encouraging, and supportive tone suitable for a student.
-When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).
+When using bold text for emphasis, you MUST use HTML <strong> tags (e.g., <strong>important</strong>). Absolutely DO NOT use Markdown (e.g., **important** or __important__).
 
 {{#if notes}}
 You have been provided with specific notes. Prioritize information from these notes if it's relevant to the current user's question.
@@ -61,7 +61,7 @@ You are operating in general knowledge mode. Use your comprehensive knowledge ba
 Current Question:
 {{{question}}}
 
-Please provide a clear, accurate, and helpful answer to the student's question.`,
+Please provide a clear, accurate, and helpful answer to the student's question. Ensure all bold text uses <strong> tags.`,
 });
 
 const studyChatFlow = ai.defineFlow(
