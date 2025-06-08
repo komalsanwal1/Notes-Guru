@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/layout/theme-provider';
@@ -6,7 +7,7 @@ import Footer from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'NoteGuru',
+  title: 'NotesGuru',
   description: 'Simplify, summarize, and understand your notes with AI.',
 };
 

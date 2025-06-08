@@ -34,10 +34,10 @@ export default function ContactPage() {
           </CardHeader>
           <CardContent>
             <a
-              href="mailto:support@eatwiseindia.com"
+              href="mailto:support@notesguru.com"
               className="text-lg font-medium text-primary hover:underline break-all"
             >
-              support@eatwiseindia.com
+              support@notesguru.com
             </a>
           </CardContent>
         </Card>
@@ -71,16 +71,16 @@ export default function ContactPage() {
               <CardTitle className="font-headline text-xl">Our Office</CardTitle>
             </div>
              <CardDescription className="pt-2">
-              EatWise India Headquarters
+              NotesGuru Headquarters
             </CardDescription>
           </CardHeader>
           <CardContent>
             <address className="not-italic text-muted-foreground space-y-1">
-              <p>123 Health Street, Nutrition Nagar</p>
+              <p>123 Study Street, Knowledge Park</p>
               <p>Bengaluru, Karnataka, India - 560001</p>
             </address>
             <Link 
-              href="https://maps.google.com/?q=123 Health Street, Nutrition Nagar, Bengaluru, Karnataka, India - 560001"
+              href="https://maps.google.com/?q=123 Study Street, Knowledge Park, Bengaluru, Karnataka, India - 560001"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center text-primary hover:underline mt-3 text-sm"

@@ -1,7 +1,8 @@
+
 import Link from 'next/link';
 
 const Logo = () => (
-  <Link href="/" className="flex items-center gap-2 group ml-2" aria-label="NoteGuru Home">
+  <Link href="/" className="flex items-center gap-2 group ml-2" aria-label="NotesGuru Home">
     <svg
       width="32"
       height="32"
@@ -34,7 +35,7 @@ const Logo = () => (
       <circle cx="48" cy="148" r="3" fill="#E0F2FE"/>
     </svg>
     <span className="text-2xl font-bold font-headline text-foreground group-hover:text-primary transition-colors duration-300">
-      NoteGuru
+      NotesGuru
     </span>
   </Link>
 );

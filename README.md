@@ -1,7 +1,7 @@
 
-# NoteGuru - AI-Powered Study Assistant
+# NotesGuru - AI-Powered Study Assistant
 
-**Simplify, summarize, understand, and chat with your notes using the power of AI. NoteGuru is designed to transform your study and note-taking experience, making learning smarter and more efficient.**
+**Simplify, summarize, understand, and chat with your notes using the power of AI. NotesGuru is designed to transform your study and note-taking experience, making learning smarter and more efficient.**
 
 
 
@@ -22,7 +22,7 @@
 
 ## Overview
 
-NoteGuru is a Next.js web application built to help students and learners manage and understand their study materials more effectively. It leverages Generative AI (via Genkit) to offer powerful text processing capabilities, including OCR for handwritten notes, text simplification, summarization, Q&A generation, and an interactive study chat assistant.
+NotesGuru is a Next.js web application built to help students and learners manage and understand their study materials more effectively. It leverages Generative AI (via Genkit) to offer powerful text processing capabilities, including OCR for handwritten notes, text simplification, summarization, Q&A generation, and an interactive study chat assistant.
 
 The application is designed with a clean, modern, and responsive user interface using ShadCN UI components and Tailwind CSS.
 
@@ -197,4 +197,4 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 
 ---
 
-Happy Studying with NoteGuru!
+Happy Studying with NotesGuru!
