@@ -1,23 +1,17 @@
+
 import HeroSection from '@/components/features/hero-section';
 import PageContainer from '@/components/shared/page-container';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { NAV_ITEMS } from '@/lib/constants';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Brain } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const features = [
   {
-    title: "AI Simplification",
-    description: "Break down complex text into easy-to-understand bullet points or engaging stories. Ask follow-up questions with our AI chat.",
-    href: "/simplify",
-    icon: <CheckCircle2 className="w-6 h-6 text-primary" />
-  },
-  {
-    title: "Note Summarization",
-    description: "Generate concise summaries or detailed notes from your rough drafts. Download in Markdown format.",
-    href: "/summarize",
-    icon: <CheckCircle2 className="w-6 h-6 text-primary" />
+    title: "Process & Study Text",
+    description: "Simplify complex text, generate concise summaries, or get detailed notes. Refine with AI chat and ask follow-up questions using broader AI knowledge.",
+    href: "/process-study",
+    icon: <Brain className="w-6 h-6 text-primary" />
   },
   {
     title: "OCR for Handwritten Notes",
@@ -26,8 +20,8 @@ const features = [
     icon: <CheckCircle2 className="w-6 h-6 text-primary" />
   },
   {
-    title: "Study Chat",
-    description: "Engage in contextual conversations about your study materials. Get answers and insights from our AI study assistant.",
+    title: "General Study Chat",
+    description: "Engage in contextual conversations about any study materials you provide. Get answers and insights from our AI study assistant.",
     href: "/study-chat",
     icon: <CheckCircle2 className="w-6 h-6 text-primary" />
   }
@@ -41,7 +35,7 @@ export default function HomePage() {
       <section className="py-12 md:py-16">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold font-headline text-center mb-12">Discover NoteGuru's Features</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
             {features.map((feature) => (
               <Card key={feature.title} className="flex flex-col">
                 <CardHeader>
