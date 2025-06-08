@@ -86,37 +86,6 @@ const testimonials = [
   }
 ];
 
-const contactMethods = [
-  {
-    name: "Email Us",
-    value: "support@noteguru.app",
-    href: "mailto:support@noteguru.app",
-    icon: <Mail className="w-8 h-8 text-primary group-hover:text-blue-500 transition-colors" />,
-    description: "For general inquiries, support, or feedback."
-  },
-  {
-    name: "Twitter / X",
-    value: "@NoteGuruApp",
-    href: "https://twitter.com/NoteGuruApp", // Placeholder
-    icon: <Twitter className="w-8 h-8 text-primary group-hover:text-sky-500 transition-colors" />,
-    description: "Follow us for updates and news."
-  },
-  {
-    name: "LinkedIn",
-    value: "NoteGuru",
-    href: "https://linkedin.com/company/noteguru", // Placeholder
-    icon: <Linkedin className="w-8 h-8 text-primary group-hover:text-blue-700 transition-colors" />,
-    description: "Connect with us professionally."
-  },
-  {
-    name: "GitHub",
-    value: "NoteGuruOrg",
-    href: "https://github.com/NoteGuruOrg", // Placeholder
-    icon: <Github className="w-8 h-8 text-primary group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />,
-    description: "Check out our open source projects."
-  }
-];
-
 
 export default function HomePage() {
   return (
@@ -225,10 +194,8 @@ export default function HomePage() {
         </div>
       </section>
       
-      {/* Contact Section moved to /contact page */}
-
       {/* Final CTA Section */}
-      <section className="py-16 md:py-24 text-center">
+      <section className="py-16 md:py-24 text-center bg-accent">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl md:text-4xl font-bold font-headline mb-6">Ready to Elevate Your Studies?</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">

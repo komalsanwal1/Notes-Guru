@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 const HeroSection = () => {
   return (
-    <section className="py-12 md:py-20 lg:py-28 text-center">
+    <section className="py-12 md:py-20 lg:py-28 text-center bg-accent">
       <div className="container px-4 md:px-6">
         <div className="max-w-3xl mx-auto space-y-6">
           <h1 className="text-4xl font-bold font-headline tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
