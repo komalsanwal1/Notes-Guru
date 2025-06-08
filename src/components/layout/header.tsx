@@ -1,10 +1,11 @@
+
 "use client";
 
 import Logo from "@/components/shared/logo";
 import { MainNav, MobileNav } from "@/components/layout/main-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import React from "react";
 
@@ -29,6 +30,7 @@ const Header = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
+              <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="p-4">
                 <Logo />
                 <MobileNav />
