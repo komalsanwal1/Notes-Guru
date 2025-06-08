@@ -3,7 +3,6 @@ import HeroSection from '@/components/features/hero-section';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, Brain, ScanText, MessageSquare, UploadCloud, Cpu, FileText, Clock, Lightbulb, TrendingUp, Settings2, Star } from 'lucide-react';
 
 const features = [
@@ -32,22 +31,16 @@ const howItWorksSteps = [
     title: "Upload or Input",
     description: "Easily upload images of handwritten notes for OCR, or paste typed text directly into our processor.",
     icon: <UploadCloud className="w-10 h-10 text-primary mb-4" />,
-    image: "https://placehold.co/600x400.png",
-    imageHint: "upload notes"
   },
   {
     title: "AI-Powered Processing",
     description: "Our intelligent algorithms extract, simplify, summarize, or generate Q&A based on your chosen mode.",
     icon: <Cpu className="w-10 h-10 text-primary mb-4" />,
-    image: "https://placehold.co/600x400.png",
-    imageHint: "ai processing"
   },
   {
     title: "Study, Refine & Download",
     description: "Review your enhanced notes, refine them with AI chat, and download PDFs for offline study.",
     icon: <FileText className="w-10 h-10 text-primary mb-4" />,
-    image: "https://placehold.co/600x400.png",
-    imageHint: "study notes"
   }
 ];
 
@@ -143,14 +136,6 @@ export default function HomePage() {
                   <CardTitle className="font-headline text-xl">{index + 1}. {step.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Image 
-                    src={step.image} 
-                    alt={step.title} 
-                    width={600} 
-                    height={400} 
-                    className="rounded-md mb-4 aspect-video object-cover"
-                    data-ai-hint={step.imageHint} 
-                  />
                   <CardDescription>{step.description}</CardDescription>
                 </CardContent>
               </Card>
@@ -162,13 +147,13 @@ export default function HomePage() {
       {/* Why NoteGuru? / Benefits Section */}
       <section className="py-12 md:py-16">
         <div className="container px-4 md:px-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold font-headline mb-6">Unlock Your Full Study Potential</h2>
-              <p className="text-lg text-muted-foreground mb-8">
+          <div className="flex justify-center">
+            <div className="w-full lg:w-2/3 text-center lg:text-left">
+              <h2 className="text-3xl font-bold font-headline mb-6 text-center">Unlock Your Full Study Potential</h2>
+              <p className="text-lg text-muted-foreground mb-8 text-center">
                 NoteGuru isn't just another note-taking app. It's a comprehensive AI-powered learning assistant designed to help you excel academically and beyond.
               </p>
-              <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
                 {benefits.map((benefit) => (
                   <div key={benefit.title} className="flex items-start gap-4">
                     <div className="flex-shrink-0 bg-primary text-primary-foreground p-3 rounded-full">
@@ -181,16 +166,6 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="relative h-full min-h-[300px] md:min-h-[500px]">
-               <Image 
-                src="https://placehold.co/800x1000.png" 
-                alt="Student studying effectively with NoteGuru" 
-                width={800} 
-                height={1000}
-                className="rounded-lg shadow-2xl object-cover w-full h-full"
-                data-ai-hint="student studying" 
-              />
             </div>
           </div>
         </div>
@@ -226,7 +201,7 @@ export default function HomePage() {
           </p>
           <Button asChild size="lg" className="font-semibold text-lg px-8 py-6">
             <Link href="/process-study">
-              Unlock NoteGuru Pro
+              Get Started Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>

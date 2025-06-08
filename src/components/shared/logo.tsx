@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 const Logo = () => (
-  <Link href="/" className="flex items-center gap-2 group" aria-label="NoteGuru Home">
+  <Link href="/" className="flex items-center gap-2 group ml-2" aria-label="NoteGuru Home">
     <svg
       width="32"
       height="32"
