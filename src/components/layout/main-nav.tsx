@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -29,9 +30,13 @@ export function MainNav() {
   );
 }
 
-export function MobileNav() {
+interface MobileNavProps {
+  onLinkClick?: () => void;
+}
+
+export function MobileNav({ onLinkClick }: MobileNavProps) {
   const pathname = usePathname();
-  // TODO: Implement mobile navigation, e.g., using a Sheet component
+  
   return (
      <nav className="md:hidden flex flex-col space-y-2 mt-4">
       {NAV_ITEMS.map((item: NavItem) => (
@@ -45,6 +50,7 @@ export function MobileNav() {
           )}
           aria-disabled={item.disabled}
           tabIndex={item.disabled ? -1 : undefined}
+          onClick={onLinkClick} // Close the menu when a link is clicked
         >
           {item.title}
         </Link>

@@ -33,7 +33,7 @@ const Header = () => {
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="p-4">
                 <Logo />
-                <MobileNav />
+                <MobileNav onLinkClick={() => setIsMobileMenuOpen(false)} />
               </div>
             </SheetContent>
           </Sheet>
