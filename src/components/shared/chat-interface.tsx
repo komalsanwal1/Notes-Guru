@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ChatInterfaceProps<TInput, TOutput> {
   aiFlow: (input: TInput) => Promise<TOutput>;
