@@ -3,7 +3,7 @@ import HeroSection from '@/components/features/hero-section';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowRight, Brain, ScanText, MessageSquare, UploadCloud, Cpu, FileText, Clock, Lightbulb, TrendingUp, Settings2, Star } from 'lucide-react';
+import { ArrowRight, Brain, ScanText, MessageSquare, UploadCloud, Cpu, FileText, Clock, Lightbulb, TrendingUp, Settings2, Star, Mail, Github, Linkedin, Twitter } from 'lucide-react';
 
 const features = [
   {
@@ -82,6 +82,33 @@ const testimonials = [
     quote: "The AI chat feature is incredible for clarifying doubts. It's like having a personal tutor available 24/7.",
     name: "Mike B.",
     role: "Lifelong Learner"
+  }
+];
+
+const contactMethods = [
+  {
+    name: "Email",
+    icon: <Mail className="w-6 h-6 text-primary" />,
+    value: "contact@noteguru.com",
+    href: "mailto:contact@noteguru.com"
+  },
+  {
+    name: "Twitter",
+    icon: <Twitter className="w-6 h-6 text-primary" />,
+    value: "@NoteGuruApp",
+    href: "#" // Replace with actual Twitter link
+  },
+  {
+    name: "LinkedIn",
+    icon: <Linkedin className="w-6 h-6 text-primary" />,
+    value: "NoteGuru",
+    href: "#" // Replace with actual LinkedIn link
+  },
+  {
+    name: "GitHub",
+    icon: <Github className="w-6 h-6 text-primary" />,
+    value: "NoteGuruOrg",
+    href: "#" // Replace with actual GitHub link
   }
 ];
 
@@ -187,6 +214,39 @@ export default function HomePage() {
                   <p className="text-sm opacity-80">{testimonial.role}</p>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Us Section */}
+      <section className="py-12 md:py-16">
+        <div className="container px-4 md:px-6">
+          <h2 className="text-3xl font-bold font-headline text-center mb-4">Get in Touch</h2>
+          <p className="text-lg text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
+            Have questions, feedback, or just want to say hello? Reach out to us through any of these channels.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {contactMethods.map((method) => (
+              <a 
+                key={method.name} 
+                href={method.href} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="group"
+              >
+                <Card className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+                  <CardHeader className="items-center">
+                    {method.icon}
+                    <CardTitle className="font-headline text-xl mt-2 group-hover:text-primary transition-colors">
+                      {method.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground break-all">{method.value}</p>
+                  </CardContent>
+                </Card>
+              </a>
             ))}
           </div>
         </div>
