@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -16,6 +17,8 @@ interface ChatInterfaceProps<TInput, TOutput> {
   initialMessages?: ChatMessageProps[];
   chatContainerClassName?: string;
   inputPlaceholder?: string;
+  onNewAiMessageContent?: (messageContent: string, aiResponse: TOutput) => void; // Added aiResponse
+  instanceKey?: string | number; // Added to help with re-initialization
 }
 
 function ChatInterface<TInput, TOutput>({
@@ -25,11 +28,21 @@ function ChatInterface<TInput, TOutput>({
   initialMessages = [],
   chatContainerClassName = "h-[500px]",
   inputPlaceholder,
+  onNewAiMessageContent,
+  instanceKey,
 }: ChatInterfaceProps<TInput, TOutput>) {
   const [messages, setMessages] = useState<ChatMessageProps[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // If instanceKey changes, re-initialize messages.
+    // This is useful if the chat needs to be reset with new initial messages.
+    setMessages(initialMessages);
+    setError(null);
+  }, [instanceKey, initialMessages]);
+
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -41,11 +54,13 @@ function ChatInterface<TInput, TOutput>({
     setIsLoading(true);
     setError(null);
     const userMessage: ChatMessageProps = { role: "user", content: userInput, createdAt: new Date() };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    // Use a functional update for messages to ensure we have the latest state
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
+
 
     try {
-      const flowInput = transformInput(userInput, newMessages);
+      const flowInput = transformInput(userInput, currentMessages); // Pass currentMessages
       const aiResponse = await aiFlow(flowInput);
       const assistantMessageContent = transformOutput(aiResponse);
       const assistantMessage: ChatMessageProps = {
@@ -54,6 +69,9 @@ function ChatInterface<TInput, TOutput>({
         createdAt: new Date(),
       };
       setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+      if (onNewAiMessageContent) {
+        onNewAiMessageContent(assistantMessageContent, aiResponse);
+      }
     } catch (err) {
       console.error("AI flow error:", err);
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
@@ -72,7 +90,7 @@ function ChatInterface<TInput, TOutput>({
       <CardContent className="p-0 flex-grow flex flex-col">
         <ScrollArea className={cn("flex-grow p-4", chatContainerClassName)} ref={scrollAreaRef}>
           {messages.map((msg, index) => (
-            <ChatMessage key={index} {...msg} />
+            <ChatMessage key={`${instanceKey}-${index}`} {...msg} />
           ))}
           {error && (
             <Alert variant="destructive" className="my-4">
