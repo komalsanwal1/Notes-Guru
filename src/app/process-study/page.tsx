@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -8,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Terminal, Wand2, MessageSquare, Edit, FileType2, Brain, HelpCircle } from "lucide-react";
+import { Loader2, Terminal, Wand2, MessageSquare, Edit, FileType2, Brain, Heading } from "lucide-react";
 import { processText, type ProcessTextInput, type ProcessTextOutput } from "@/ai/flows/process-text-flow";
 import { studyChat, type StudyChatInput, type StudyChatOutput } from "@/ai/flows/study-chat";
 import ChatInterface, { createChatMessage } from "@/components/shared/chat-interface";
@@ -24,6 +25,7 @@ export default function ProcessStudyPage() {
   const [inputText, setInputText] = useState("");
   const [mode, setMode] = useState<ProcessingMode>("simplify");
   const [format, setFormat] = useState<OutputFormat>("bullet_points");
+  const [generatedHeading, setGeneratedHeading] = useState("");
   const [processedText, setProcessedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -40,12 +42,14 @@ export default function ProcessStudyPage() {
     }
     setIsLoading(true);
     setError(null);
+    setGeneratedHeading("");
     setProcessedText("");
     setInitialProcessingDone(false);
 
     try {
       const input: ProcessTextInput = { text: inputText, mode, format };
       const result: ProcessTextOutput = await processText(input);
+      setGeneratedHeading(result.generatedHeading);
       setProcessedText(result.processedText);
       setInitialProcessingDone(true);
       setRefinementChatKey(prev => prev + 1);
@@ -62,29 +66,32 @@ export default function ProcessStudyPage() {
   };
 
   const refinementChatInitialMessages = useMemo(() => {
-    if (initialProcessingDone && processedText.trim()) {
+    if (initialProcessingDone && (generatedHeading.trim() || processedText.trim())) {
       let modeDescription = "";
       if (mode === 'simplify') modeDescription = "simplification";
       else if (mode === 'summarize') modeDescription = "summary";
       else if (mode === 'generate_qa') modeDescription = "Q&A generation";
+      
+      const fullContent = (generatedHeading ? `<strong>${generatedHeading}</strong>\n\n` : '') + processedText;
 
       return [
-        createChatMessage("system", `This is the initial ${modeDescription}. You can ask me to refine it further (e.g., 'make it shorter', 'explain the first bullet point', 'add more questions').`),
-        createChatMessage("assistant", processedText)
+        createChatMessage("system", `This is the initial ${modeDescription}. The AI has generated a heading and the content below. You can ask me to refine it further (e.g., 'make the body shorter', 'explain the first bullet point', 'change the heading to...').`),
+        createChatMessage("assistant", fullContent)
       ];
     }
     return [createChatMessage("system", "Perform an initial text processing first.")];
-  }, [initialProcessingDone, processedText, mode, refinementChatKey]);
+  }, [initialProcessingDone, processedText, generatedHeading, mode, refinementChatKey]);
 
   const studyChatInitialMessages = useMemo(() => {
-    return initialProcessingDone && processedText.trim()
-      ? [createChatMessage("system", "You can ask follow-up questions about the processed text below. I can use my general knowledge if needed.")]
-      : [createChatMessage("system", "Process some text first to enable follow-up questions.")];
-  }, [initialProcessingDone, processedText, refinementChatKey]);
+    if (initialProcessingDone && (generatedHeading.trim() || processedText.trim())) {
+       return [createChatMessage("system", "You can ask follow-up questions about the processed text below (including its heading). I can use my general knowledge if needed.")];
+    }
+    return [createChatMessage("system", "Process some text first to enable follow-up questions.")];
+  }, [initialProcessingDone, processedText, generatedHeading, refinementChatKey]);
   
   const handleDownloadPdf = async () => {
-    if (!processedText) {
-      toast({ variant: "destructive", title: "Error", description: "No processed text to download." });
+    if (!processedText && !generatedHeading) {
+      toast({ variant: "destructive", title: "Error", description: "No processed text or heading to download." });
       return;
     }
 
@@ -94,17 +101,35 @@ export default function ProcessStudyPage() {
     try {
       const tempElement = document.createElement('div');
       tempElement.style.position = 'absolute';
-      tempElement.style.left = '-9999px';
-      tempElement.style.width = '700px'; // A4-like width for better layouting
+      tempElement.style.left = '-9999px'; // Off-screen
+      tempElement.style.width = '700px'; 
       tempElement.style.padding = '20px';
-      tempElement.style.fontFamily = 'Inter, sans-serif'; // Match app font
-      tempElement.innerHTML = `<div style="font-size: 12pt; line-height: 1.5; color: #333; background-color: #fff; white-space: pre-wrap;">${processedText.replace(/\n/g, '<br />')}</div>`;
+      tempElement.style.fontFamily = 'Inter, sans-serif';
+      tempElement.style.backgroundColor = '#ffffff'; // Ensure white background for canvas
+
+      let pdfContentHtml = '';
+      if (generatedHeading) {
+        // Use dangerouslySetInnerHTML for heading to render <strong> tags
+        const headingDiv = document.createElement('div');
+        headingDiv.style.fontSize = '16pt';
+        headingDiv.style.fontWeight = 'bold';
+        headingDiv.style.marginBottom = '12pt';
+        headingDiv.style.color = '#000'; // Ensure heading text is black
+        headingDiv.innerHTML = generatedHeading;
+        pdfContentHtml += headingDiv.outerHTML;
+      }
+      // Use dangerouslySetInnerHTML for processedText to render <strong> tags
+      const bodyDiv = document.createElement('div');
+      bodyDiv.innerHTML = processedText.replace(/\n/g, '<br />');
+      pdfContentHtml += bodyDiv.outerHTML;
+      
+      tempElement.innerHTML = `<div style="font-size: 12pt; line-height: 1.5; color: #333; background-color: #fff; white-space: pre-wrap;">${pdfContentHtml}</div>`;
       document.body.appendChild(tempElement);
 
       const canvas = await html2canvas(tempElement, {
-        scale: 2, // Higher scale for better quality
+        scale: 2, 
         useCORS: true,
-        backgroundColor: '#ffffff', // Ensure canvas has white background
+        backgroundColor: '#ffffff',
       });
 
       document.body.removeChild(tempElement);
@@ -118,25 +143,22 @@ export default function ProcessStudyPage() {
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const margin = 40; // pt
+      const margin = 40; 
       const contentWidth = pdfWidth - 2 * margin;
       
-      const imgReportedWidth = canvas.width / 2; // Adjust for scale
-      const imgReportedHeight = canvas.height / 2; // Adjust for scale
+      const imgReportedWidth = canvas.width / 2; 
+      const imgReportedHeight = canvas.height / 2; 
       
       const ratio = imgReportedWidth / imgReportedHeight;
       let imgDisplayWidth = contentWidth;
       let imgDisplayHeight = imgDisplayWidth / ratio;
 
-      // If image height is still too large for one page, we might need to split it or scale it down further.
-      // For simplicity, we'll scale to fit a single page height if it overflows.
       if (imgDisplayHeight > pdfHeight - 2 * margin) {
         imgDisplayHeight = pdfHeight - 2 * margin;
         imgDisplayWidth = imgDisplayHeight * ratio;
       }
       
-      const x = margin + (contentWidth - imgDisplayWidth) / 2; // Center horizontally
+      const x = margin + (contentWidth - imgDisplayWidth) / 2; 
       const y = margin;
 
       pdf.addImage(imgData, 'PNG', x, y, imgDisplayWidth, imgDisplayHeight);
@@ -153,13 +175,13 @@ export default function ProcessStudyPage() {
 
   return (
     <PageContainer
-      title="Process & Study Text"
+      title="Process &amp; Study Text"
       description="Simplify complex information, summarize key points, generate Q&A, and more. Refine with AI and ask follow-up questions."
     >
       <div className="grid md:grid-cols-2 gap-8">
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-headline flex items-center"><Brain className="mr-2 h-6 w-6 text-primary" />Input & Process</CardTitle>
+            <CardTitle className="font-headline flex items-center"><Brain className="mr-2 h-6 w-6 text-primary" />Input &amp; Process</CardTitle>
             <CardDescription>Enter your text, choose a processing mode and format, then start.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -192,7 +214,7 @@ export default function ProcessStudyPage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="generate_qa" id="generate-qa-mode" />
-                  <Label htmlFor="generate-qa-mode">Generate Q&A</Label>
+                  <Label htmlFor="generate-qa-mode">Generate Q&amp;A</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -236,49 +258,58 @@ export default function ProcessStudyPage() {
 
         <Tabs defaultValue="result" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="result">Processed Text & Refine</TabsTrigger>
-            <TabsTrigger value="chat" disabled={!initialProcessingDone || !processedText.trim()}>Study Chat (AI Enhanced)</TabsTrigger>
+            <TabsTrigger value="result">Processed Text &amp; Refine</TabsTrigger>
+            <TabsTrigger value="chat" disabled={!initialProcessingDone || (!processedText.trim() && !generatedHeading.trim())}>Study Chat (AI Enhanced)</TabsTrigger>
           </TabsList>
           <TabsContent value="result">
             <Card className="shadow-lg">
               <CardHeader>
                  <CardTitle className="font-headline flex items-center"><Edit className="mr-2 h-6 w-6 text-primary" />Refine Processed Text</CardTitle>
                  <CardDescription>
-                    {initialProcessingDone && processedText.trim() ? "Chat with the AI to refine the text." : "Process some text first to enable refinement."}
+                    {initialProcessingDone && (processedText.trim() || generatedHeading.trim()) ? "Chat with the AI to refine the text and its heading." : "Process some text first to enable refinement."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                {initialProcessingDone && processedText.trim() ? (
+                {initialProcessingDone && (processedText.trim() || generatedHeading.trim()) ? (
                   <>
                    <ChatInterface<ProcessTextInput, ProcessTextOutput>
                     instanceKey={`refine-${refinementChatKey}`}
                     aiFlow={processText}
                     initialMessages={refinementChatInitialMessages}
                     transformInput={(userInput, history) => {
-                      let prevProcessed = processedText; 
+                      // Find the latest assistant message to get the previous state
+                      let prevProcessed = processedText;
+                      let prevHeading = generatedHeading;
                       for (let i = history.length - 1; i >= 0; i--) {
                         if (history[i].role === 'assistant') {
-                          prevProcessed = history[i].content;
-                          break;
+                          // This is a bit tricky because assistant content now includes heading
+                          // We'll rely on the AI flow to parse its own previous output if needed,
+                          // and send the current state from the page.
+                          break; 
                         }
                       }
                       return {
-                        text: inputText,
+                        text: inputText, // Original input text
                         mode,
                         format,
-                        previousProcessedText: prevProcessed,
+                        previousProcessedText: processedText, // Current processed text from state
+                        previousHeading: generatedHeading, // Current heading from state
                         refinementInstruction: userInput,
                       };
                     }}
-                    transformOutput={(aiResponse) => aiResponse.processedText}
-                    onNewAiMessageContent={(newText) => {
-                      setProcessedText(newText); // Update the main processedText state for PDF download and study chat
+                    transformOutput={(aiResponse) => {
+                       // The AI response content for the chat should include both heading and text
+                       return (aiResponse.generatedHeading ? `<strong>${aiResponse.generatedHeading}</strong>\n\n` : '') + aiResponse.processedText;
+                    }}
+                    onNewAiMessageContent={(newCombinedContent, aiResponse) => {
+                      setGeneratedHeading(aiResponse.generatedHeading); 
+                      setProcessedText(aiResponse.processedText); 
                     }}
                     chatContainerClassName="h-[calc(440px-120px)]" 
-                    inputPlaceholder="e.g., 'make it shorter', 'add more detail'"
+                    inputPlaceholder="e.g., 'make body shorter', 'change heading'"
                   />
                   <div className="p-4 border-t flex gap-2 justify-end">
-                    <Button onClick={handleDownloadPdf} disabled={!processedText || isLoading || isGeneratingPdf} variant="outline">
+                    <Button onClick={handleDownloadPdf} disabled={(!processedText && !generatedHeading) || isLoading || isGeneratingPdf} variant="outline">
                       {isGeneratingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType2 className="mr-2 h-4 w-4" />}
                       {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF'}
                     </Button>
@@ -297,17 +328,18 @@ export default function ProcessStudyPage() {
               <CardHeader>
                  <CardTitle className="font-headline flex items-center"><MessageSquare className="mr-2 h-6 w-6 text-primary" />AI Enhanced Study Chat</CardTitle>
                  <CardDescription>
-                    {initialProcessingDone && processedText.trim() ? "Ask questions about the processed text. AI will use general knowledge if needed." : "Process text first to enable this chat."}
+                    {initialProcessingDone && (processedText.trim() || generatedHeading.trim()) ? "Ask questions about the processed text. AI will use general knowledge if needed." : "Process text first to enable this chat."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                {initialProcessingDone && processedText.trim() ? (
+                {initialProcessingDone && (processedText.trim() || generatedHeading.trim()) ? (
                    <ChatInterface<StudyChatInput, StudyChatOutput>
-                    instanceKey={`study-${refinementChatKey}-${processedText.length}`} // Ensure re-render if processedText changes
+                    instanceKey={`study-${refinementChatKey}-${generatedHeading.length}-${processedText.length}`}
                     aiFlow={studyChat}
-                    transformInput={(userInput) => ({
-                      notes: processedText, // Use the latest processed text from state
+                    transformInput={(userInput, history) => ({
+                      notes: (generatedHeading ? `<strong>${generatedHeading}</strong>\n\n` : '') + processedText, 
                       question: userInput,
+                      chatHistory: history.filter(msg => msg.role === 'user' || msg.role === 'assistant')
                     })}
                     transformOutput={(aiResponse) => aiResponse.answer}
                     initialMessages={studyChatInitialMessages}

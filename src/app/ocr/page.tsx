@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type ChangeEvent, useEffect } from "react";
@@ -11,20 +12,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, Terminal, UploadCloud, ScanText, Sparkles } from "lucide-react";
 import { extractTextFromImage, type ExtractTextFromImageInput, type ExtractTextFromImageOutput } from "@/ai/flows/extract-text-from-image";
-import { simplifyText, type SimplifyTextInput, type SimplifyTextOutput } from "@/ai/flows/simplify-with-ai";
+import { processText, type ProcessTextInput, type ProcessTextOutput } from "@/ai/flows/process-text-flow";
 import { useToast } from "@/hooks/use-toast";
 
 export default function OcrPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [extractedText, setExtractedText] = useState("");
-  const [editableText, setEditableText] = useState("");
+  const [extractedText, setExtractedText] = useState(""); // Stores the original OCR output
+  const [editableText, setEditableText] = useState(""); // Text in the textarea, can be refined
   const [isLoadingOcr, setIsLoadingOcr] = useState(false);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    // When extractedText changes (new OCR), update editableText
     setEditableText(extractedText);
   }, [extractedText]);
 
@@ -38,8 +40,8 @@ export default function OcrPage() {
       };
       reader.readAsDataURL(file);
       setError(null);
-      setExtractedText("");
-      setEditableText("");
+      setExtractedText(""); // Clear previous OCR text
+      setEditableText(""); // Clear previous editable text
     }
   };
 
@@ -56,7 +58,7 @@ export default function OcrPage() {
     try {
       const input: ExtractTextFromImageInput = { photoDataUri: previewUrl };
       const result: ExtractTextFromImageOutput = await extractTextFromImage(input);
-      setExtractedText(result.extractedText);
+      setExtractedText(result.extractedText); // This will trigger the useEffect to setEditableText
       toast({ title: "Success", description: "Text extracted from image." });
     } catch (err) {
       console.error("OCR error:", err);
@@ -71,23 +73,29 @@ export default function OcrPage() {
   const handleAiAction = async (action: "clean" | "revise" | "shorten") => {
     if (!editableText.trim()) {
       setError("No text to process.");
+      toast({ variant: "destructive", title: "Input Missing", description: "No text to process for AI action." });
       return;
     }
     setIsLoadingAi(true);
     setError(null);
 
-    let promptText = "";
-    if (action === "clean") promptText = "Clean up any OCR errors and improve readability of the following text, maintaining original meaning and style:\n\n";
-    if (action === "revise") promptText = "Revise the following text for clarity, conciseness, and improved grammar, while preserving the core message:\n\n";
-    if (action === "shorten") promptText = "Shorten the following text significantly, creating a concise summary or key bullet points:\n\n";
+    let refinementInstruction = "";
+    if (action === "clean") refinementInstruction = "Clean up any OCR errors and improve readability of the text, maintaining original meaning and style.";
+    if (action === "revise") refinementInstruction = "Revise the text for clarity, conciseness, and improved grammar, while preserving the core message.";
+    if (action === "shorten") refinementInstruction = "Shorten the text significantly, creating a concise summary. Output as plain text, not bullet points, suitable for direct editing.";
     
     try {
-      const input: SimplifyTextInput = { 
-        text: promptText + editableText, 
-        format: "bullet points" // Default, can be changed or made configurable
+      const input: ProcessTextInput = { 
+        text: extractedText || editableText, // Provide original OCR text if available, else current editable as context
+        mode: "simplify", // Base mode for processText context
+        format: "story_format", // We want plain text back for the textarea
+        previousProcessedText: editableText, // The current text in the textarea to be refined
+        refinementInstruction: refinementInstruction,
+        // previousHeading is optional and not used here
       };
-      const result: SimplifyTextOutput = await simplifyText(input);
-      setEditableText(result.simplifiedText);
+      const result: ProcessTextOutput = await processText(input);
+      // The OCR page uses the processedText directly. The generatedHeading from processText is not displayed here.
+      setEditableText(result.processedText); 
       toast({ title: "Success", description: `Text ${action}ed successfully.` });
     } catch (err) {
       console.error(`AI ${action} error:`, err);
@@ -138,7 +146,7 @@ export default function OcrPage() {
               )}
               Extract Text
             </Button>
-            {error && !isLoadingOcr && ( // Only show general error if not OCR loading error
+            {error && !isLoadingOcr && !isLoadingAi && ( 
               <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
@@ -160,7 +168,7 @@ export default function OcrPage() {
               placeholder="Extracted text will appear here. You can edit it directly."
               rows={12}
               className="min-h-[250px]"
-              disabled={isLoadingAi}
+              disabled={isLoadingAi || isLoadingOcr} // Disable if OCR is also loading
             />
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => handleAiAction("clean")} disabled={isLoadingAi || !editableText.trim()} variant="outline">
@@ -173,10 +181,10 @@ export default function OcrPage() {
                  {isLoadingAi ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Shorten
               </Button>
             </div>
-            {error && isLoadingAi && ( // Only show AI specific error if AI loading error
+            {error && (isLoadingAi || (!isLoadingOcr && error)) && ( // Show if AI error, or general error not related to OCR loading
               <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
-                <AlertTitle>AI Processing Error</AlertTitle>
+                <AlertTitle>Processing Error</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -186,3 +194,5 @@ export default function OcrPage() {
     </PageContainer>
   );
 }
+
+    
