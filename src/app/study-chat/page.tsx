@@ -88,13 +88,14 @@ export default function StudyChatPage() {
                 {isContextSet ? (
                     <ChatInterface<StudyChatInput, StudyChatOutput>
                         aiFlow={studyChat}
-                        transformInput={(userInput) => ({
-                        notes: notesContext,
-                        question: userInput,
+                        transformInput={(userInput, history) => ({ // history is passed here
+                          notes: notesContext,
+                          question: userInput,
+                          chatHistory: history.filter(msg => msg.role === 'user' || msg.role === 'assistant') // Pass only user/assistant messages
                         })}
                         transformOutput={(aiResponse) => aiResponse.answer}
                         initialMessages={chatInterfaceInitialMessages}
-                        chatContainerClassName="h-[calc(600px-120px)]" // Adjust as needed
+                        chatContainerClassName="h-[calc(600px-120px)]" 
                         inputPlaceholder="Ask a question about your notes..."
                     />
                 ) : (
