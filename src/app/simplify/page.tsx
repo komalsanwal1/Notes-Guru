@@ -52,13 +52,13 @@ export default function SimplifyPage() {
   };
   
   const followUpChatInitialMessages = useMemo(() => {
-    return initialSimplificationDone && simplifiedText
+    return initialSimplificationDone && simplifiedText.trim()
       ? [createChatMessage("system", "You can ask follow-up questions about the refined text below.")]
       : [createChatMessage("system", "Simplify text first to enable follow-up questions.")];
   }, [initialSimplificationDone, simplifiedText]);
 
   const refinementChatInitialMessages = useMemo(() => {
-    if (initialSimplificationDone && simplifiedText) {
+    if (initialSimplificationDone && simplifiedText.trim()) {
       return [
         createChatMessage("system", "This is the initial simplification. You can ask me to refine it further (e.g., 'make it shorter', 'explain the first bullet point')."),
         createChatMessage("assistant", simplifiedText)
@@ -132,18 +132,18 @@ export default function SimplifyPage() {
         <Tabs defaultValue="result" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="result">Refine Simplified Text</TabsTrigger>
-            <TabsTrigger value="chat" disabled={!initialSimplificationDone || !simplifiedText}>General Follow-up Chat</TabsTrigger>
+            <TabsTrigger value="chat" disabled={!initialSimplificationDone || !simplifiedText.trim()}>General Follow-up Chat</TabsTrigger>
           </TabsList>
           <TabsContent value="result">
             <Card className="shadow-lg">
               <CardHeader>
                  <CardTitle className="font-headline flex items-center"><Edit className="mr-2 h-6 w-6 text-primary" />Refine Simplification</CardTitle>
                  <CardDescription>
-                    {initialSimplificationDone && simplifiedText ? "Chat with the AI to refine the simplified text." : "Perform an initial simplification to enable refinement."}
+                    {initialSimplificationDone && simplifiedText.trim() ? "Chat with the AI to refine the simplified text." : "Perform an initial simplification to enable refinement."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                {initialSimplificationDone && simplifiedText ? (
+                {initialSimplificationDone && simplifiedText.trim() ? (
                    <ChatInterface<SimplifyTextInput, SimplifyTextOutput>
                     instanceKey={`refine-${refinementChatKey}`}
                     aiFlow={simplifyText}
@@ -184,11 +184,11 @@ export default function SimplifyPage() {
               <CardHeader>
                  <CardTitle className="font-headline flex items-center"><MessageSquare className="mr-2 h-6 w-6 text-primary" />Ask About Final Text</CardTitle>
                  <CardDescription>
-                    {initialSimplificationDone && simplifiedText ? "Ask general follow-up questions about the current refined text." : "Simplify and refine text first to enable this chat."}
+                    {initialSimplificationDone && simplifiedText.trim() ? "Ask general follow-up questions about the current refined text." : "Simplify and refine text first to enable this chat."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                {initialSimplificationDone && simplifiedText ? (
+                {initialSimplificationDone && simplifiedText.trim() ? (
                    <ChatInterface<StudyChatInput, StudyChatOutput>
                     instanceKey={`followup-${refinementChatKey}-${simplifiedText.length}`} // Re-key if simplifiedText changes significantly
                     aiFlow={studyChat}
@@ -214,3 +214,4 @@ export default function SimplifyPage() {
     </PageContainer>
   );
 }
+

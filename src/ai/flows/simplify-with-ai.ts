@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
   input: {schema: SimplifyTextInputSchema},
   output: {schema: SimplifyTextOutputSchema},
   prompt: `You are an AI expert in simplifying complex texts.
-When using bold text for emphasis, use HTML <strong> tags (e.g., <strong>important</strong>) instead of Markdown (e.g., **important**).
+**IMPORTANT**: When you generate text that requires emphasis or bolding, you MUST use HTML <strong> tags (e.g., <strong>This is important</strong>). Do NOT use Markdown like **important**.
 
 {{#if refinementInstruction}}
 You are refining a previously simplified text.
@@ -50,12 +50,12 @@ The previous simplified text (in {{{format}}} format) was:
 The user's refinement instruction is:
 {{{refinementInstruction}}}
 
-Please provide the new, refined simplified text, keeping the {{{format}}} format.
+Please provide the new, refined simplified text, keeping the {{{format}}} format. Remember to use <strong> tags for any bold text.
 {{else}}
 Please simplify the following text into the format requested by the user.
 Text: {{{text}}}
 Format: {{{format}}}
-Output the simplified text.
+Output the simplified text. Remember to use <strong> tags for any bold text.
 {{/if}}`,
 });
 
@@ -70,3 +70,4 @@ const simplifyTextFlow = ai.defineFlow(
     return output!;
   }
 );
+
