@@ -175,7 +175,7 @@ This application utilizes Genkit to power its AI functionalities. Key flows incl
 -   **`process-text-flow.ts`**: A versatile flow for simplifying, summarizing, or generating Q&A from input text. It supports different output formats (bullet points, story) and allows for iterative refinement based on user feedback. It also generates a heading for the processed content.
 -   **`study-chat.ts`**: Powers the interactive study chat. It can answer questions based on provided notes or use its general knowledge. It maintains conversation history for context.
 
-These flows are typically invoked from the frontend components in `src/app/`. The global Genkit AI instance is configured in `src/ai/genkit.ts` using the Google AI plugin.
+These flows are typically invoked from the frontend components in `src/app/`. The global Genkit AI instance is configured in `src/ai/genkit.ts` using the Google AI plugin. By default, it is configured to use the `gemini-2.0-flash` model.
 
 ## Deployment
 
