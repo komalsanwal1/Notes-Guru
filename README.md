@@ -82,8 +82,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1.  **Clone the repository (if applicable):**
     ```bash
-    git https://github.com/shivam367/WanderAI.git
-    cd WanderAI
+    git https://github.com/komalsanwal1/Notes-Guru
+    cd Notes-Guru
     ```
 
 2.  **Install dependencies:**
