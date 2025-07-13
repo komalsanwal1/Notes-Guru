@@ -82,8 +82,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1.  **Clone the repository (if applicable):**
     ```bash
-    git clone <your-repository-url>
-    cd <project-directory>
+    git https://github.com/shivam367/WanderAI.git
+    cd WanderAI
     ```
 
 2.  **Install dependencies:**
